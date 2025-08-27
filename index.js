@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import { promises as fs } from "fs";
-import fetch from "node-fetch";
+import OllamaService from "./ollama/index.js";
 dotenv.config();
 
 
@@ -15,6 +15,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const port = 3000;
+
+// Initialize Ollama service
+const ollamaService = new OllamaService();
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -28,6 +31,145 @@ app.get("/voices", (req, res) => {
   const modelDir = path.join(process.cwd(), "models");
   const models = readdirSync(modelDir).filter(f => f.endsWith(".onnx"));
   res.send(models);
+});
+
+// Interview API endpoints
+app.get("/interview/templates", (req, res) => {
+  try {
+    const templates = ollamaService.getAvailableTemplates();
+    res.json({
+      success: true,
+      templates,
+      count: templates.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch templates",
+      message: error.message
+    });
+  }
+});
+
+app.get("/interview/templates/search", (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        error: "Search query parameter 'q' is required"
+      });
+    }
+    
+    const templates = ollamaService.searchTemplates(q);
+    res.json({
+      success: true,
+      templates,
+      count: templates.length,
+      query: q
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to search templates",
+      message: error.message
+    });
+  }
+});
+
+app.get("/interview/templates/stats", (req, res) => {
+  try {
+    const stats = ollamaService.getTemplateStatistics();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to get template statistics",
+      message: error.message
+    });
+  }
+});
+
+app.post("/interview/generate", async (req, res) => {
+  try {
+    const { template, context } = req.body;
+    
+    if (!template) {
+      return res.status(400).json({
+        success: false,
+        error: "Template key is required",
+        example: "languages.java"
+      });
+    }
+    
+    const questions = await ollamaService.generateInterviewQuestions(template, context);
+    res.json({
+      success: true,
+      template,
+      questions,
+      count: questions.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate interview questions",
+      message: error.message
+    });
+  }
+});
+
+// Resume-specific endpoints
+app.post("/interview/resume/analyze", async (req, res) => {
+  try {
+    const { resumeContent, template = "resume.general" } = req.body;
+    
+    if (!resumeContent) {
+      return res.status(400).json({
+        success: false,
+        error: "Resume content is required",
+        example: "Provide resume text content"
+      });
+    }
+    
+    // Generate context-aware questions based on resume content
+    const context = `Resume Content:\n${resumeContent}\n\nBased on this resume, generate relevant interview questions.`;
+    const questions = await ollamaService.generateInterviewQuestions(template, context);
+    
+    res.json({
+      success: true,
+      template,
+      questions,
+      count: questions.length,
+      resumeAnalyzed: true
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to analyze resume and generate questions",
+      message: error.message
+    });
+  }
+});
+
+app.get("/interview/resume/templates", (req, res) => {
+  try {
+    const resumeTemplates = ollamaService.searchTemplates("resume");
+    res.json({
+      success: true,
+      templates: resumeTemplates,
+      count: resumeTemplates.length,
+      description: "Resume-specific interview templates"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch resume templates",
+      message: error.message
+    });
+  }
 });
 
 const execCommand = (command) => {
@@ -56,18 +198,18 @@ app.post("/chat", async (req, res) => {
     res.send({
       messages: [
         {
-          text: "Hey dear... How was your day?",
+          text: "Hello! Welcome to your AI interview session. I'm here to help you practice and improve your interview skills.",
           audio: await audioFileToBase64("audios/intro_0.wav"),
           lipsync: await readJsonTranscript("audios/intro_0.json"),
           facialExpression: "smile",
           animation: "Talking_1",
         },
         {
-          text: "I missed you so much... Please don't go for so long!",
+          text: "Let's get started! What technology or role would you like to practice for today?",
           audio: await audioFileToBase64("audios/intro_1.wav"),
           lipsync: await readJsonTranscript("audios/intro_1.json"),
-          facialExpression: "sad",
-          animation: "Crying",
+          facialExpression: "default",
+          animation: "Talking_2",
         },
       ],
     });
@@ -75,29 +217,8 @@ app.post("/chat", async (req, res) => {
   }
 
 
-  // Prepare prompt for Ollama
-  const systemPrompt = `You are a virtual girlfriend.\nYou will always reply with a JSON array of messages. With a maximum of 3 messages. Each message has a text, facialExpression, and animation property. Use "default" for facialExpression and "Idle" for animation unless the context specifically calls for something different.`;
-  const prompt = `${systemPrompt}\nUser: ${userMessage || "Hello"}`;
-
-  // Call Ollama local LLM
-  const ollamaRes = await fetch("http://localhost:11434/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "llama3", // Change to your preferred model name if needed
-      prompt: prompt,
-      stream: false
-    })
-  });
-  const ollamaData = await ollamaRes.json();
-  let messages;
-  try {
-    messages = JSON.parse(ollamaData.response);
-    if (messages.messages) messages = messages.messages;
-  } catch (e) {
-    // fallback: return a default message if parsing fails
-    messages = [{ text: "Sorry, I couldn't process your request.", facialExpression: "default", animation: "Idle" }];
-  }
+  // Generate response using Ollama service
+  const messages = await ollamaService.generateResponse(userMessage);
   for (let i = 0; i < messages.length; i++) {
     const message = messages[i];
     // generate audio file using Piper TTS
@@ -145,5 +266,5 @@ const audioFileToBase64 = async (file) => {
 };
 
 app.listen(port, () => {
-  console.log(`Virtual Girlfriend listening on port ${port}`);
+  console.log(`Virtual AI Interviewer listening on port ${port}`);
 });
