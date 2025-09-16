@@ -23,7 +23,11 @@ Focus on topics like:
 - Security and user management
 - Data types and storage engines (InnoDB, MyISAM)
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -32,10 +36,16 @@ Format your response as a JSON array with maximum 3 questions. Each question sho
 Example format:
 [
   {
-    "text": "Explain the difference between INNER JOIN and LEFT JOIN with examples",
+    "text": "Explain the difference between INNER JOIN and LEFT JOIN and their performance characteristics",
     "difficulty": "intermediate",
     "category": "SQL Queries",
-    "followUp": "When would you use each type of join?"
+    "followUp": "What are the use cases for each type of join?"
+  },
+  {
+    "text": "What is database normalization and what are the different normal forms?",
+    "difficulty": "advanced",
+    "category": "Database Design",
+    "followUp": "What are the trade-offs between normalization and denormalization?"
   }
 ]`,
     responseFormat: "interview_questions"
@@ -61,7 +71,11 @@ Focus on topics like:
 - Security features (RLS, SSL)
 - Performance monitoring and tuning
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -89,7 +103,11 @@ Focus on topics like:
 - Security and authentication
 - Backup and restore strategies
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -117,7 +135,11 @@ Focus on topics like:
 - Security and access control
 - Use cases and design patterns
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -145,7 +167,11 @@ Focus on topics like:
 - Limitations and use cases
 - Performance tuning techniques
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -173,7 +199,11 @@ Focus on topics like:
 - Backup and restore procedures
 - CAP theorem implications
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category

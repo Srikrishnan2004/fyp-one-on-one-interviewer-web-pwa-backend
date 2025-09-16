@@ -95,7 +95,7 @@ app.get("/interview/templates/stats", (req, res) => {
 
 app.post("/interview/generate", async (req, res) => {
   try {
-    const { template, context } = req.body;
+    const { template, context, includeAudio = true } = req.body;
     
     if (!template) {
       return res.status(400).json({
@@ -106,11 +106,47 @@ app.post("/interview/generate", async (req, res) => {
     }
     
     const questions = await ollamaService.generateInterviewQuestions(template, context);
+    
+    // Process each question to add audio and animation properties
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      
+      if (includeAudio) {
+        const timestamp = Date.now();
+        const baseFileName = `interview_${i}_${timestamp}`;
+        const fileName = `audios/${baseFileName}.wav`;
+        
+        try {
+          // Generate audio file using Piper TTS
+          await piperTTS(question.text, piperModel, fileName);
+          // Generate lipsync
+          await lipSyncMessage(baseFileName);
+          
+          // Add audio properties
+          question.audio = await audioFileToBase64(fileName);
+          question.lipsync = await readJsonTranscript(`audios/${baseFileName}.json`);
+        } catch (audioError) {
+          console.error(`Failed to generate audio for question ${i}:`, audioError);
+          question.audio = null;
+          question.lipsync = null;
+        }
+      } else {
+        // Add default audio properties when audio is not generated
+        question.audio = null;
+        question.lipsync = null;
+      }
+      
+      // Always add facial expression and animation properties
+      question.facialExpression = getFacialExpressionForDifficulty(question.difficulty);
+      question.animation = getAnimationForQuestionType(question.category);
+    }
+    
     res.json({
       success: true,
       template,
       questions,
-      count: questions.length
+      count: questions.length,
+      audioGenerated: includeAudio
     });
   } catch (error) {
     res.status(500).json({
@@ -124,7 +160,7 @@ app.post("/interview/generate", async (req, res) => {
 // Resume-specific endpoints
 app.post("/interview/resume/analyze", async (req, res) => {
   try {
-    const { resumeContent, template = "resume.general" } = req.body;
+    const { resumeContent, template = "resume.general", includeAudio = true } = req.body;
     
     if (!resumeContent) {
       return res.status(400).json({
@@ -138,12 +174,47 @@ app.post("/interview/resume/analyze", async (req, res) => {
     const context = `Resume Content:\n${resumeContent}\n\nBased on this resume, generate relevant interview questions.`;
     const questions = await ollamaService.generateInterviewQuestions(template, context);
     
+    // Process each question to add audio and animation properties
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      
+      if (includeAudio) {
+        const timestamp = Date.now();
+        const baseFileName = `resume_${i}_${timestamp}`;
+        const fileName = `audios/${baseFileName}.wav`;
+        
+        try {
+          // Generate audio file using Piper TTS
+          await piperTTS(question.text, piperModel, fileName);
+          // Generate lipsync
+          await lipSyncMessage(baseFileName);
+          
+          // Add audio properties
+          question.audio = await audioFileToBase64(fileName);
+          question.lipsync = await readJsonTranscript(`audios/${baseFileName}.json`);
+        } catch (audioError) {
+          console.error(`Failed to generate audio for resume question ${i}:`, audioError);
+          question.audio = null;
+          question.lipsync = null;
+        }
+      } else {
+        // Add default audio properties when audio is not generated
+        question.audio = null;
+        question.lipsync = null;
+      }
+      
+      // Always add facial expression and animation properties
+      question.facialExpression = getFacialExpressionForDifficulty(question.difficulty);
+      question.animation = getAnimationForQuestionType(question.category);
+    }
+    
     res.json({
       success: true,
       template,
       questions,
       count: questions.length,
-      resumeAnalyzed: true
+      resumeAnalyzed: true,
+      audioGenerated: includeAudio
     });
   } catch (error) {
     res.status(500).json({
@@ -181,12 +252,64 @@ const execCommand = (command) => {
   });
 };
 
-const lipSyncMessage = async (message) => {
+// Helper function to determine facial expression based on question difficulty
+const getFacialExpressionForDifficulty = (difficulty) => {
+  switch (difficulty) {
+    case "beginner":
+      return "smile";
+    case "intermediate":
+      return "default";
+    case "advanced":
+      return "serious";
+    default:
+      return "default";
+  }
+};
+
+// Helper function to determine animation based on question category
+const getAnimationForQuestionType = (category) => {
+  const categoryAnimationMap = {
+    "Technical": "Talking_1",
+    "Behavioral": "Talking_2", 
+    "Leadership": "Talking_1",
+    "Problem-solving": "Thinking",
+    "System Design": "Explaining",
+    "Coding": "Talking_1",
+    "Database": "Talking_2",
+    "Framework": "Talking_1",
+    "General": "Talking_1"
+  };
+  
+  return categoryAnimationMap[category] || "Talking_1";
+};
+
+// Function to call Piper TTS Python script
+async function piperTTS(text, modelPath, outputFile) {
+  return new Promise((resolve, reject) => {
+    // Escape quotes properly for command line
+    const escapedText = text.replace(/"/g, '\\"');
+    const command = `python ${piperScript} "${escapedText}" "${modelPath}" "${outputFile}"`;
+    console.log(`Executing: ${command}`);
+    
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Piper TTS error: ${error.message}`);
+        console.error(`Stderr: ${stderr}`);
+        reject(error);
+      } else {
+        console.log(`Piper TTS output: ${stdout}`);
+        resolve(stdout);
+      }
+    });
+  });
+}
+
+const lipSyncMessage = async (baseFileName) => {
   const time = new Date().getTime();
-  console.log(`Starting lip sync for message ${message}`);
+  console.log(`Starting lip sync for message ${baseFileName}`);
   // Since Piper TTS already generates WAV files, we can skip the MP3 to WAV conversion
   await execCommand(
-    `"C:\\Program Files\\Rhubarb-Lip-Sync-1.14.0-Windows\\rhubarb.exe" -f json -o audios/message_${message}.json audios/message_${message}.wav -r phonetic`
+    `"C:\\Program Files\\Rhubarb-Lip-Sync-1.14.0-Windows\\rhubarb.exe" -f json -o audios/${baseFileName}.json audios/${baseFileName}.wav -r phonetic`
   );
   // -r phonetic is faster but less accurate
   console.log(`Lip sync done in ${new Date().getTime() - time}ms`);
@@ -222,39 +345,20 @@ app.post("/chat", async (req, res) => {
   for (let i = 0; i < messages.length; i++) {
     const message = messages[i];
     // generate audio file using Piper TTS
-    const fileName = `audios/message_${i}.wav`;
+    const baseFileName = `message_${i}`;
+    const fileName = `audios/${baseFileName}.wav`;
     const textInput = message.text;
     await piperTTS(textInput, piperModel, fileName);
     // generate lipsync
-    await lipSyncMessage(i);
+    await lipSyncMessage(baseFileName);
     message.audio = await audioFileToBase64(fileName);
-    message.lipsync = await readJsonTranscript(`audios/message_${i}.json`);
+    message.lipsync = await readJsonTranscript(`audios/${baseFileName}.json`);
   }
-
-// Function to call Piper TTS Python script
-async function piperTTS(text, modelPath, outputFile) {
-  return new Promise((resolve, reject) => {
-    // Escape quotes properly for command line
-    const escapedText = text.replace(/"/g, '\\"');
-    const command = `python ${piperScript} "${escapedText}" "${modelPath}" "${outputFile}"`;
-    console.log(`Executing: ${command}`);
-    
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Piper TTS error: ${error.message}`);
-        console.error(`Stderr: ${stderr}`);
-        reject(error);
-      } else {
-        console.log(`Piper TTS output: ${stdout}`);
-        resolve(stdout);
-      }
-    });
-  });
-}
 
   res.send({ messages });
 });
 
+// Utility functions for audio processing
 const readJsonTranscript = async (file) => {
   const data = await fs.readFile(file, "utf8");
   return JSON.parse(data);

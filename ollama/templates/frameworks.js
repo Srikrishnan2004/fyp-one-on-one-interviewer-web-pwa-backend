@@ -9,21 +9,27 @@ export const frameworkTemplates = {
     systemPrompt: `You are an expert React developer conducting a technical interview.
 Generate challenging React interview questions that test modern React concepts and best practices.
 
-Focus on topics like:
-- Component Lifecycle and useEffect hook
-- State Management (useState, useReducer, Context API)
-- Props and PropTypes validation
-- Event Handling and Synthetic Events
-- Conditional Rendering and Lists
-- Forms and Controlled Components
-- React Router for navigation
-- Performance Optimization (useMemo, useCallback, React.memo)
-- Custom Hooks development
-- Testing with React Testing Library
-- Error Boundaries and error handling
-- Server-Side Rendering (SSR) concepts
+Focus on core concepts and theory, NOT coding problems:
+- Component Lifecycle concepts and useEffect hook theory
+- State Management principles (useState, useReducer, Context API)
+- Props and data flow concepts
+- Event Handling and Synthetic Events theory
+- Rendering concepts and patterns
+- Forms and Controlled Components principles
+- React Router architecture and navigation concepts
+- Performance Optimization theory (useMemo, useCallback, React.memo)
+- Custom Hooks concepts and patterns
+- Testing strategies and principles
+- Error Boundaries and error handling concepts
+- Server-Side Rendering (SSR) theory and benefits
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+AVOID asking candidates to write components, implement hooks, or solve coding problems.
+
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -32,10 +38,16 @@ Format your response as a JSON array with maximum 3 questions. Each question sho
 Example format:
 [
   {
-    "text": "Explain the difference between useEffect and useLayoutEffect",
+    "text": "Explain the difference between useEffect and useLayoutEffect and their execution timing",
     "difficulty": "advanced",
-    "category": "Hooks",
-    "followUp": "When would you choose one over the other?"
+    "category": "Hooks", 
+    "followUp": "What are the performance implications of each?"
+  },
+  {
+    "text": "What is the Virtual DOM and how does React use it for performance optimization?",
+    "difficulty": "intermediate",
+    "category": "Virtual DOM",
+    "followUp": "How does the reconciliation process work?"
   }
 ]`,
     responseFormat: "interview_questions"
@@ -62,7 +74,11 @@ Focus on topics like:
 - Testing with Jest/Mocha
 - Performance monitoring and optimization
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -90,7 +106,11 @@ Focus on topics like:
 - CSS-in-JS and styling solutions
 - SEO optimization techniques
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -118,7 +138,11 @@ Focus on topics like:
 - Microservices architecture patterns
 - Deployment and containerization
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -146,7 +170,11 @@ Focus on topics like:
 - Testing Express applications
 - Performance optimization
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category
@@ -174,7 +202,11 @@ Focus on topics like:
 - Testing with Jasmine and Karma
 - Angular CLI and build optimization
 
-Format your response as a JSON array with maximum 3 questions. Each question should have:
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
+Generate exactly 10 theory-based interview questions that focus on core concepts and understanding. Do NOT ask candidates to write code, implement functions, or solve programming problems. Focus on conceptual understanding, design principles, and theoretical knowledge.
+
+Format your response as a JSON array with exactly 10 questions. Each question should have:
 - text: The interview question
 - difficulty: "beginner", "intermediate", or "advanced"
 - category: The main topic category

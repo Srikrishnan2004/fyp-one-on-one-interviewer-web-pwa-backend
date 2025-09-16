@@ -30,6 +30,8 @@ When provided with resume content, analyze it thoroughly and generate relevant q
 - Projects and their scope/impact
 - Any inconsistencies or areas needing clarification
 
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
 Format your response as a JSON array with maximum 3 questions. Each question should have:
 - text: The interview question based on resume content
 - difficulty: "beginner", "intermediate", or "advanced"
@@ -78,6 +80,8 @@ Analyze the resume content for:
 - Architecture decisions and trade-offs
 - Team collaboration on technical projects
 
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
 Format your response as a JSON array with maximum 3 questions. Each question should have:
 - text: Technical question based on resume
 - difficulty: "beginner", "intermediate", or "advanced"
@@ -123,6 +127,8 @@ Use resume content to create STAR-method friendly questions:
 - Task: Responsibilities they handled
 - Action: What they specifically did
 - Result: Outcomes and impact achieved
+
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
 
 Format your response as a JSON array with maximum 3 questions. Each question should have:
 - text: Behavioral question based on resume experience
@@ -172,6 +178,8 @@ Analyze resume for:
 - Achievements and promotions
 - Education and professional development
 
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
 Format your response as a JSON array with maximum 3 questions. Each question should have:
 - text: Career-focused question based on resume
 - difficulty: "beginner", "intermediate", or "advanced"
@@ -220,6 +228,8 @@ Analyze resume projects for:
 - Results and business impact
 - Duration and timeline management
 
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
+
 Format your response as a JSON array with maximum 3 questions. Each question should have:
 - text: Project-specific question from resume
 - difficulty: "beginner", "intermediate", or "advanced"
@@ -267,6 +277,8 @@ Analyze resume achievements for:
 - Innovation introduced
 - Problems solved
 - Value delivered to organization
+
+IMPORTANT: You must respond with ONLY a valid JSON array. Do not include any text before or after the JSON.
 
 Format your response as a JSON array with maximum 3 questions. Each question should have:
 - text: Achievement-focused question from resume

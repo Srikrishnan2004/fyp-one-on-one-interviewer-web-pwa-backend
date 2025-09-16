@@ -136,13 +136,57 @@ class OllamaService {
       let questions;
 
       try {
-        questions = JSON.parse(data.response);
+        // Clean the response to extract JSON
+        let responseText = data.response.trim();
+        
+        // Remove common prefixes that might appear before JSON
+        const prefixes = [
+          'Here are the interview questions:',
+          'Here are',
+          'Here is',
+          'The questions are:',
+          'Questions:',
+          'Interview questions:'
+        ];
+        
+        for (const prefix of prefixes) {
+          if (responseText.toLowerCase().startsWith(prefix.toLowerCase())) {
+            responseText = responseText.substring(prefix.length).trim();
+            break;
+          }
+        }
+        
+        // Try to find JSON array in the response
+        const jsonStart = responseText.indexOf('[');
+        const jsonEnd = responseText.lastIndexOf(']');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+          // Extract potential JSON content
+          const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+          questions = JSON.parse(jsonString);
+        } else {
+          // Try to parse the entire response
+          questions = JSON.parse(responseText);
+        }
+        
         // Ensure we have an array
         if (!Array.isArray(questions)) {
           questions = [questions];
         }
+        
+        // Validate and clean each question
+        questions = questions.map(q => ({
+          text: q.text || "What are the key concepts you should know?",
+          difficulty: q.difficulty || "intermediate",
+          category: q.category || "General",
+          followUp: q.followUp || "Can you provide more details?",
+          ...(q.resumeContext && { resumeContext: q.resumeContext })
+        }));
+        
       } catch (e) {
         console.error("Failed to parse interview questions:", e);
+        console.error("Raw response:", data.response);
+        
         // Return fallback questions
         questions = [{
           text: `Generate a ${template.name} interview question`,
