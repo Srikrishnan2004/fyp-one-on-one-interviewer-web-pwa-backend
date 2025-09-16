@@ -4,21 +4,20 @@ import dotenv from "dotenv";
 import express from "express";
 import { promises as fs } from "fs";
 import OllamaService from "./ollama/index.js";
+import app from "./app.js";
+import { closePool } from "./config/database.js";
 dotenv.config();
-
 
 // Path to your Piper TTS Python script and default model
 const piperScript = "piper_tts.py";
 const piperModel = "models/en_US-amy-medium.onnx";
 
-const app = express();
-app.use(express.json());
-app.use(cors());
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Initialize Ollama service
 const ollamaService = new OllamaService();
 
+// Add existing interview functionality to the app
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
@@ -369,6 +368,21 @@ const audioFileToBase64 = async (file) => {
   return data.toString("base64");
 };
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await closePool();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down gracefully...');
+  await closePool();
+  process.exit(0);
+});
+
 app.listen(port, () => {
-  console.log(`Virtual AI Interviewer listening on port ${port}`);
+  console.log(`Virtual AI Interviewer Backend listening on port ${port}`);
+  console.log(`Health check: http://localhost:${port}/health`);
+  console.log(`API Documentation: http://localhost:${port}/api`);
 });
