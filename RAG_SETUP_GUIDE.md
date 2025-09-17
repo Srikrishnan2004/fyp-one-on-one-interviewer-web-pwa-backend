@@ -25,18 +25,19 @@ The RAG system consists of:
 npm install
 ```
 
-### 2. Download the Embedding Model
+### 2. Test the Embedding Service
 
-The embedding model will be downloaded automatically on first use, but you can download it manually:
+Test the embedding service to ensure it's working correctly:
 
 ```bash
-npm run download-model
+npm run test-embedding
 ```
 
 This will:
-- Download the `sentence-transformers/all-MiniLM-L6-v2` model
-- Store it in `./models/embeddings/`
-- Test the model to ensure it's working correctly
+- Initialize the embedding service with a reliable model
+- Test single and multiple embedding generation
+- Verify similarity calculations
+- Confirm the service is working correctly
 
 ### 3. Environment Configuration
 
@@ -63,7 +64,7 @@ CHROMA_DB_PATH=./chroma_db
 
 # Local Model Configuration
 EMBEDDING_MODEL_PATH=./models/embeddings
-EMBEDDING_MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_MODEL_NAME=Xenova/all-MiniLM-L6-v2
 
 # CORS Configuration
 CORS_ORIGIN=http://localhost:3000

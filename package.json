@@ -8,7 +8,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js --ext js",
     "download-model": "node scripts/downloadModel.js",
-    "setup-rag": "npm run download-model"
+    "test-embedding": "node scripts/testEmbedding.js",
+    "setup-rag": "npm run test-embedding"
   },
   "author": "Wawa SENSEI <contact@wawasensei.dev>",
   "dependencies": {

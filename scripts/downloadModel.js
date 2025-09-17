@@ -23,6 +23,7 @@ async function downloadModel() {
     const featureExtractor = await pipeline('feature-extraction', MODEL_NAME, {
       local_files_only: false, // Allow downloading
       cache_dir: MODEL_PATH,
+      quantized: false, // Use non-quantized model to avoid ONNX issues
       progress_callback: (progress) => {
         if (progress.status === 'downloading') {
           console.log(`Downloading: ${progress.file} (${Math.round(progress.progress * 100)}%)`);

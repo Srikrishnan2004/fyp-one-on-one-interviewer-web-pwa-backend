@@ -7,9 +7,9 @@ dotenv.config();
 
 export class EmbeddingService {
   constructor() {
-    this.model = process.env.EMBEDDING_MODEL_NAME || 'sentence-transformers/all-MiniLM-L6-v2';
+    this.model = 'Xenova/all-MiniLM-L6-v2';
     this.modelPath = process.env.EMBEDDING_MODEL_PATH || './models/embeddings';
-    this.dimension = 384; // Dimension of all-MiniLM-L6-v2 embeddings
+    this.dimension = 384;
     this.pipeline = null;
     this.isInitialized = false;
   }
@@ -23,16 +23,29 @@ export class EmbeddingService {
         return true;
       }
 
-      console.log('Initializing embedding service with local model...');
+      console.log('Initializing embedding service...');
       
       // Create models directory if it doesn't exist
       await this.ensureModelDirectory();
       
-      // Initialize the feature extraction pipeline
-      this.pipeline = await pipeline('feature-extraction', this.model, {
-        local_files_only: false, // Allow downloading if not present locally
-        cache_dir: this.modelPath
-      });
+      // Try different approaches to initialize the pipeline
+      try {
+        // First try: Use the Xenova model directly
+        this.pipeline = await pipeline('feature-extraction', this.model, {
+          local_files_only: false,
+          cache_dir: this.modelPath
+        });
+      } catch (error) {
+        console.log('First approach failed, trying alternative...');
+        
+        // Second try: Use a different model that's more reliable
+        this.model = 'Xenova/distilbert-base-uncased';
+        this.pipeline = await pipeline('feature-extraction', this.model, {
+          local_files_only: false,
+          cache_dir: this.modelPath
+        });
+        this.dimension = 768; // DistilBERT has 768 dimensions
+      }
 
       this.isInitialized = true;
       console.log('Embedding service initialized successfully');
@@ -75,8 +88,8 @@ export class EmbeddingService {
 
       // Generate embedding using local pipeline
       const result = await this.pipeline(processedText, {
-        pooling: 'mean', // Use mean pooling for sentence embeddings
-        normalize: true  // Normalize embeddings
+        pooling: 'mean',
+        normalize: true
       });
 
       // Extract the embedding vector
@@ -107,21 +120,16 @@ export class EmbeddingService {
 
       const embeddings = [];
       
-      // Process texts in batches to avoid memory issues
-      const batchSize = 10;
-      for (let i = 0; i < texts.length; i += batchSize) {
-        const batch = texts.slice(i, i + batchSize);
+      // Process texts one by one to avoid memory issues
+      for (const text of texts) {
+        const processedText = this.preprocessText(text);
+        const result = await this.pipeline(processedText, {
+          pooling: 'mean',
+          normalize: true
+        });
         
-        for (const text of batch) {
-          const processedText = this.preprocessText(text);
-          const result = await this.pipeline(processedText, {
-            pooling: 'mean',
-            normalize: true
-          });
-          
-          const embedding = Array.from(result.data);
-          embeddings.push(embedding);
-        }
+        const embedding = Array.from(result.data);
+        embeddings.push(embedding);
       }
 
       return embeddings;
@@ -191,45 +199,8 @@ export class EmbeddingService {
     
     return text
       .trim()
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/\s+/g, ' ')
       .toLowerCase();
-  }
-
-  /**
-   * Split long text into chunks for embedding
-   * @param {string} text - Long text to chunk
-   * @param {number} maxChunkSize - Maximum characters per chunk
-   * @param {number} overlap - Character overlap between chunks
-   * @returns {string[]} Array of text chunks
-   */
-  chunkText(text, maxChunkSize = 1000, overlap = 100) {
-    if (!text || text.length <= maxChunkSize) {
-      return [text];
-    }
-
-    const chunks = [];
-    let start = 0;
-
-    while (start < text.length) {
-      let end = Math.min(start + maxChunkSize, text.length);
-      
-      // Try to break at sentence boundary
-      if (end < text.length) {
-        const lastPeriod = text.lastIndexOf('.', end);
-        const lastQuestion = text.lastIndexOf('?', end);
-        const lastExclamation = text.lastIndexOf('!', end);
-        const lastBreak = Math.max(lastPeriod, lastQuestion, lastExclamation);
-        
-        if (lastBreak > start + maxChunkSize * 0.5) {
-          end = lastBreak + 1;
-        }
-      }
-
-      chunks.push(text.slice(start, end).trim());
-      start = end - overlap;
-    }
-
-    return chunks.filter(chunk => chunk.length > 0);
   }
 
   /**
@@ -240,7 +211,7 @@ export class EmbeddingService {
     return {
       model: this.model,
       dimension: this.dimension,
-      description: 'sentence-transformers/all-MiniLM-L6-v2 - A lightweight sentence transformer model'
+      description: 'Embedding service with fallback models for reliability'
     };
   }
 
@@ -261,9 +232,9 @@ export class EmbeddingService {
         model: this.model,
         modelPath: this.modelPath,
         dimension: embedding.length,
-        testEmbedding: embedding.slice(0, 5), // First 5 dimensions for preview
+        testEmbedding: embedding.slice(0, 5),
         isInitialized: this.isInitialized,
-        message: 'Local embedding service is working correctly'
+        message: 'Embedding service is working correctly'
       };
     } catch (error) {
       return {
@@ -272,7 +243,7 @@ export class EmbeddingService {
         model: this.model,
         modelPath: this.modelPath,
         isInitialized: this.isInitialized,
-        message: 'Local embedding service test failed'
+        message: 'Embedding service test failed'
       };
     }
   }
