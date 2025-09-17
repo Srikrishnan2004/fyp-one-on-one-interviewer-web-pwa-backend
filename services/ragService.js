@@ -18,6 +18,10 @@ export class RAGService {
    * Initialize RAG service
    */
   async initialize() {
+    if (this.initialized) {
+      return true; // Already initialized
+    }
+    
     try {
       // Initialize embedding service first
       await this.embeddingService.initialize();
@@ -28,6 +32,7 @@ export class RAGService {
       // Create collections if they don't exist
       await this.createKnowledgeBaseCollections();
       
+      this.initialized = true;
       console.log('RAG service initialized successfully');
       return true;
     } catch (error) {
