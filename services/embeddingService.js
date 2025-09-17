@@ -1,13 +1,57 @@
-import { HfInference } from '@huggingface/inference';
+import { pipeline } from '@xenova/transformers';
 import dotenv from 'dotenv';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 dotenv.config();
 
 export class EmbeddingService {
   constructor() {
-    this.hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
-    this.model = 'sentence-transformers/all-MiniLM-L6-v2';
+    this.model = process.env.EMBEDDING_MODEL_NAME || 'sentence-transformers/all-MiniLM-L6-v2';
+    this.modelPath = process.env.EMBEDDING_MODEL_PATH || './models/embeddings';
     this.dimension = 384; // Dimension of all-MiniLM-L6-v2 embeddings
+    this.pipeline = null;
+    this.isInitialized = false;
+  }
+
+  /**
+   * Initialize the embedding pipeline
+   */
+  async initialize() {
+    try {
+      if (this.isInitialized) {
+        return true;
+      }
+
+      console.log('Initializing embedding service with local model...');
+      
+      // Create models directory if it doesn't exist
+      await this.ensureModelDirectory();
+      
+      // Initialize the feature extraction pipeline
+      this.pipeline = await pipeline('feature-extraction', this.model, {
+        local_files_only: false, // Allow downloading if not present locally
+        cache_dir: this.modelPath
+      });
+
+      this.isInitialized = true;
+      console.log('Embedding service initialized successfully');
+      return true;
+    } catch (error) {
+      console.error('Error initializing embedding service:', error);
+      throw new Error(`Failed to initialize embedding service: ${error.message}`);
+    }
+  }
+
+  /**
+   * Ensure model directory exists
+   */
+  async ensureModelDirectory() {
+    try {
+      await fs.mkdir(this.modelPath, { recursive: true });
+    } catch (error) {
+      console.error('Error creating model directory:', error);
+    }
   }
 
   /**
@@ -21,12 +65,24 @@ export class EmbeddingService {
         throw new Error('Text must be a non-empty string');
       }
 
-      const response = await this.hf.featureExtraction({
-        model: this.model,
-        inputs: text,
+      // Ensure pipeline is initialized
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      // Preprocess text
+      const processedText = this.preprocessText(text);
+
+      // Generate embedding using local pipeline
+      const result = await this.pipeline(processedText, {
+        pooling: 'mean', // Use mean pooling for sentence embeddings
+        normalize: true  // Normalize embeddings
       });
 
-      return response;
+      // Extract the embedding vector
+      const embedding = Array.from(result.data);
+
+      return embedding;
     } catch (error) {
       console.error('Error generating embedding:', error);
       throw new Error(`Failed to generate embedding: ${error.message}`);
@@ -44,12 +100,31 @@ export class EmbeddingService {
         throw new Error('Texts must be a non-empty array');
       }
 
-      const response = await this.hf.featureExtraction({
-        model: this.model,
-        inputs: texts,
-      });
+      // Ensure pipeline is initialized
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
 
-      return response;
+      const embeddings = [];
+      
+      // Process texts in batches to avoid memory issues
+      const batchSize = 10;
+      for (let i = 0; i < texts.length; i += batchSize) {
+        const batch = texts.slice(i, i + batchSize);
+        
+        for (const text of batch) {
+          const processedText = this.preprocessText(text);
+          const result = await this.pipeline(processedText, {
+            pooling: 'mean',
+            normalize: true
+          });
+          
+          const embedding = Array.from(result.data);
+          embeddings.push(embedding);
+        }
+      }
+
+      return embeddings;
     } catch (error) {
       console.error('Error generating embeddings:', error);
       throw new Error(`Failed to generate embeddings: ${error.message}`);
@@ -175,21 +250,29 @@ export class EmbeddingService {
    */
   async test() {
     try {
+      // Initialize the service first
+      await this.initialize();
+      
       const testText = "This is a test sentence for embedding generation.";
       const embedding = await this.generateEmbedding(testText);
       
       return {
         success: true,
         model: this.model,
+        modelPath: this.modelPath,
         dimension: embedding.length,
         testEmbedding: embedding.slice(0, 5), // First 5 dimensions for preview
-        message: 'Embedding service is working correctly'
+        isInitialized: this.isInitialized,
+        message: 'Local embedding service is working correctly'
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        message: 'Embedding service test failed'
+        model: this.model,
+        modelPath: this.modelPath,
+        isInitialized: this.isInitialized,
+        message: 'Local embedding service test failed'
       };
     }
   }

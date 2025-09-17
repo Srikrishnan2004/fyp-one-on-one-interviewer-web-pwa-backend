@@ -6,11 +6,14 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js --ext js"
+    "dev": "nodemon index.js --ext js",
+    "download-model": "node scripts/downloadModel.js",
+    "setup-rag": "npm run download-model"
   },
   "author": "Wawa SENSEI <contact@wawasensei.dev>",
   "dependencies": {
     "@huggingface/inference": "^2.6.4",
+    "@xenova/transformers": "^2.6.2",
     "bcryptjs": "^2.4.3",
     "chromadb": "^1.7.3",
     "cors": "^2.8.5",

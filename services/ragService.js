@@ -18,6 +18,10 @@ export class RAGService {
    */
   async initialize() {
     try {
+      // Initialize embedding service first
+      await this.embeddingService.initialize();
+      
+      // Initialize ChromaDB service
       await this.chromaService.initialize();
       
       // Create collections if they don't exist

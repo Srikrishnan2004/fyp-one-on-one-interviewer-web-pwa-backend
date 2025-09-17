@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import sessionRoutes from './routes/sessions.js';
 import conversationRoutes from './routes/conversations.js';
 import performanceRoutes from './routes/performance.js';
+import ragRoutes from './routes/rag.js';
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/performance', performanceRoutes);
+app.use('/api/rag', ragRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req, res) => {
@@ -110,6 +112,27 @@ app.get('/api', (req, res) => {
           'GET /:id - Get specific performance record',
           'PUT /:id - Update performance record',
           'DELETE /:id - Delete performance record'
+        ]
+      },
+      rag: {
+        base: '/api/rag',
+        routes: [
+          'GET /health - RAG services health check',
+          'POST /knowledge - Add knowledge to knowledge base',
+          'POST /knowledge/batch - Add multiple knowledge items',
+          'POST /search - Search knowledge base',
+          'POST /query - Generate RAG-enhanced response',
+          'POST /questions/generate - Generate interview questions with RAG',
+          'POST /questions - Add interview question',
+          'POST /questions/batch - Add multiple interview questions',
+          'POST /questions/search - Search interview questions',
+          'GET /questions/category/:category - Get questions by category',
+          'GET /stats - Get knowledge base statistics',
+          'GET /export - Export knowledge base',
+          'POST /import - Import knowledge base',
+          'GET /categories - Get available categories',
+          'GET /test/embedding - Test embedding service',
+          'GET /test/chroma - Test ChromaDB service'
         ]
       }
     },
