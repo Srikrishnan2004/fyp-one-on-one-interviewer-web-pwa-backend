@@ -3,3 +3,4 @@ node_modules
 bin
 audios/message_*
 audios/interview_*
+chroma_db

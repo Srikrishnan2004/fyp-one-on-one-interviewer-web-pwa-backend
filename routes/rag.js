@@ -8,11 +8,25 @@ const router = express.Router();
 
 // Initialize services
 const ragService = new RAGService();
-const knowledgeBaseService = new KnowledgeBaseService();
+const knowledgeBaseService = new KnowledgeBaseService(ragService);
+
+// Initialize services only once
+let servicesInitialized = false;
+async function initializeServices() {
+  if (!servicesInitialized) {
+    servicesInitialized = true;
+    try {
+      await ragService.initialize();
+      await knowledgeBaseService.initialize();
+    } catch (error) {
+      console.error('Failed to initialize RAG services:', error);
+      servicesInitialized = false; // Reset flag on error
+    }
+  }
+}
 
 // Initialize services on startup
-ragService.initialize().catch(console.error);
-knowledgeBaseService.initialize().catch(console.error);
+initializeServices();
 
 // Validation schemas
 const addKnowledgeSchema = Joi.object({

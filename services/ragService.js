@@ -11,6 +11,7 @@ export class RAGService {
     this.knowledgeBaseCollection = 'interview_knowledge_base';
     this.questionBankCollection = 'question_bank';
     this.answerBankCollection = 'answer_bank';
+    this.initialized = false;
   }
 
   /**

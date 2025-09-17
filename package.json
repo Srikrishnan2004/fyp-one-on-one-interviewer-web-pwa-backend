@@ -9,7 +9,9 @@
     "dev": "nodemon index.js --ext js",
     "download-model": "node scripts/downloadModel.js",
     "test-embedding": "node scripts/testEmbedding.js",
-    "setup-rag": "npm run test-embedding"
+    "test-postgres": "node scripts/testPostgres.js",
+    "setup-rag": "npm run test-embedding",
+    "start-chroma": "node scripts/startChromaDB.js"
   },
   "author": "Wawa SENSEI <contact@wawasensei.dev>",
   "dependencies": {

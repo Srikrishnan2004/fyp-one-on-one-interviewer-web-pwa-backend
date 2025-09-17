@@ -1,15 +1,23 @@
 import { ChromaClient } from 'chromadb';
 import dotenv from 'dotenv';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
 export class ChromaService {
   constructor() {
+    // ChromaDB server configuration
+    const chromaHost = process.env.CHROMA_HOST || 'localhost';
+    const chromaPort = process.env.CHROMA_PORT || '8000';
+    
+    // Use ChromaClient to connect to ChromaDB server
     this.client = new ChromaClient({
-      path: process.env.CHROMA_DB_PATH || './chroma_db'
+      host: chromaHost,
+      port: chromaPort
     });
     this.collections = new Map();
+    this.serverUrl = `http://${chromaHost}:${chromaPort}`;
   }
 
   /**
@@ -310,13 +318,15 @@ export class ChromaService {
         success: true,
         message: 'ChromaDB connection successful',
         collections: collections.length,
-        version: 'ChromaDB client connected'
+        version: 'ChromaDB client connected',
+        serverUrl: this.serverUrl
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        message: 'ChromaDB connection failed'
+        message: 'ChromaDB connection failed',
+        serverUrl: this.serverUrl
       };
     }
   }

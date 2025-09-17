@@ -3,8 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 export class KnowledgeBaseService {
-  constructor() {
-    this.ragService = new RAGService();
+  constructor(ragService = null) {
+    this.ragService = ragService || new RAGService();
     this.knowledgeBasePath = './knowledge_base';
     this.categories = {
       technical: ['programming', 'algorithms', 'data-structures', 'system-design', 'databases'],
@@ -19,7 +19,11 @@ export class KnowledgeBaseService {
    */
   async initialize() {
     try {
-      await this.ragService.initialize();
+      // Only initialize RAG service if it's not already initialized
+      // (it might be shared with other services)
+      if (!this.ragService.initialized) {
+        await this.ragService.initialize();
+      }
       await this.ensureKnowledgeBaseDirectory();
       console.log('Knowledge base service initialized successfully');
       return true;
