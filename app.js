@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import morgan from 'morgan';
 import { exec } from "child_process";
 import { promises as fs } from "fs";
 import path from "path";
@@ -30,11 +31,24 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
+// HTTP request logging with Morgan
+if (process.env.NODE_ENV === 'development') {
+  // Development: Detailed logging with colors and custom format
+  morgan.token('req-size', (req) => {
+    const contentLength = req.get('content-length');
+    return contentLength ? `${(contentLength / 1024).toFixed(2)}KB` : '-';
+  });
+  
+  morgan.token('res-size', (req, res) => {
+    const contentLength = res.get('content-length');
+    return contentLength ? `${(contentLength / 1024).toFixed(2)}KB` : '-';
+  });
+  
+  app.use(morgan(':method :url :status :res[content-length] :req-size :res-size - :response-time ms'));
+} else {
+  // Production: Concise logging
+  app.use(morgan('combined'));
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
