@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import LLMAnswerService from '../services/llmAnswerService.js';
 
 export class Conversation {
   constructor(data) {
@@ -32,8 +33,28 @@ export class Conversation {
       user_answer_audio_url,
       time_taken_seconds,
       llm_feedback,
-      confidence_score
+      confidence_score,
+      auto_generate_answer = true
     } = conversationData;
+
+    let finalLlmAnswer = llm_generated_answer;
+
+    // Auto-generate LLM answer if not provided and auto_generate_answer is true
+    if (!finalLlmAnswer && auto_generate_answer) {
+      try {
+        const llmService = new LLMAnswerService();
+        finalLlmAnswer = await llmService.generateAnswer(
+          question_text,
+          question_category || 'General',
+          question_difficulty
+        );
+        console.log(`✅ Generated LLM answer for question ${question_number}`);
+      } catch (error) {
+        console.error(`❌ Failed to generate LLM answer for question ${question_number}:`, error.message);
+        // Continue without LLM answer if generation fails
+        finalLlmAnswer = null;
+      }
+    }
 
     const queryText = `
       INSERT INTO conversations (
@@ -47,7 +68,7 @@ export class Conversation {
 
     const values = [
       session_id, question_number, question_text, question_category,
-      question_difficulty, llm_generated_answer, user_answer,
+      question_difficulty, finalLlmAnswer, user_answer,
       user_answer_audio_url, time_taken_seconds, llm_feedback, confidence_score
     ];
 
@@ -115,7 +136,8 @@ export class Conversation {
       'time_taken_seconds',
       'llm_feedback',
       'confidence_score',
-      'answer_timestamp'
+      'answer_timestamp',
+      'llm_generated_answer'
     ];
 
     const updates = [];

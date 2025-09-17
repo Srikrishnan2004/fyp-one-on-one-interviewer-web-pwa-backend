@@ -177,7 +177,7 @@ class OllamaService {
         // Validate and clean each question
         questions = questions.map(q => ({
           text: q.text || "What are the key concepts you should know?",
-          difficulty: q.difficulty || "intermediate",
+          difficulty: this.normalizeDifficulty(q.difficulty || "medium"),
           category: q.category || "General",
           followUp: q.followUp || "Can you provide more details?",
           ...(q.resumeContext && { resumeContext: q.resumeContext })
@@ -190,7 +190,7 @@ class OllamaService {
         // Return fallback questions
         questions = [{
           text: `Generate a ${template.name} interview question`,
-          difficulty: "intermediate",
+          difficulty: "medium",
           category: "General",
           followUp: "Please provide more specific context for better questions."
         }];
@@ -201,7 +201,7 @@ class OllamaService {
       console.error("Interview question generation error:", error);
       return [{
         text: "What are the core concepts you should know for this technology?",
-        difficulty: "beginner",
+        difficulty: "easy",
         category: "General",
         followUp: "Can you explain one of these concepts in detail?"
       }];
@@ -247,6 +247,48 @@ class OllamaService {
    */
   getTemplateStatistics() {
     return this.templateManager.getStatistics();
+  }
+
+  /**
+   * Normalize difficulty to the simplified system (easy, medium, hard)
+   * @param {string} difficulty - The difficulty to normalize
+   * @returns {string} Normalized difficulty
+   */
+  normalizeDifficulty(difficulty) {
+    if (!difficulty || typeof difficulty !== 'string') {
+      return 'medium';
+    }
+
+    const normalized = difficulty.toLowerCase().trim();
+    
+    // Map various difficulty terms to our simplified system
+    const difficultyMap = {
+      // Easy variations
+      'easy': 'easy',
+      'beginner': 'easy',
+      'basic': 'easy',
+      'simple': 'easy',
+      'entry': 'easy',
+      'junior': 'easy',
+      
+      // Medium variations
+      'medium': 'medium',
+      'intermediate': 'medium',
+      'moderate': 'medium',
+      'mid': 'medium',
+      'average': 'medium',
+      
+      // Hard variations
+      'hard': 'hard',
+      'advanced': 'hard',
+      'expert': 'hard',
+      'senior': 'hard',
+      'complex': 'hard',
+      'difficult': 'hard',
+      'challenging': 'hard'
+    };
+
+    return difficultyMap[normalized] || 'medium';
   }
 }
 

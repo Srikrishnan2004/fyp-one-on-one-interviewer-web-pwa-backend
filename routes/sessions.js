@@ -9,26 +9,34 @@ const router = express.Router();
 const createSessionSchema = Joi.object({
   session_name: Joi.string().min(1).max(100).required(),
   session_type: Joi.string().valid('interview', 'practice', 'mock', 'assessment').default('interview'),
+  difficulty: Joi.string().valid('easy', 'medium', 'hard').default('medium'),
   session_metadata: Joi.object().optional()
 });
 
 const updateSessionSchema = Joi.object({
   session_name: Joi.string().min(1).max(100).optional(),
   session_type: Joi.string().valid('interview', 'practice', 'mock', 'assessment').optional(),
+  difficulty: Joi.string().valid('easy', 'medium', 'hard').optional(),
   session_metadata: Joi.object().optional()
 });
 
 // Create a new session
 router.post('/', authenticateToken, validateInput(createSessionSchema), async (req, res) => {
   try {
-    const { session_name, session_type, session_metadata } = req.body;
+    const { session_name, session_type, difficulty, session_metadata } = req.body;
     const userId = req.user.id;
+
+    // Include difficulty in session metadata
+    const enhancedMetadata = {
+      ...session_metadata,
+      difficulty: difficulty || 'medium'
+    };
 
     const session = await Session.create({
       user_id: userId,
       session_name,
       session_type,
-      session_metadata
+      session_metadata: enhancedMetadata
     });
 
     res.status(201).json({

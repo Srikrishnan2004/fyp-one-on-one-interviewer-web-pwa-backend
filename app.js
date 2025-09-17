@@ -134,7 +134,7 @@ app.get("/interview/templates/stats", (req, res) => {
 
 app.post("/interview/generate", async (req, res) => {
   try {
-    const { template, context, includeAudio = true } = req.body;
+    const { template, context, difficulty = 'medium', includeAudio = true } = req.body;
     
     if (!template) {
       return res.status(400).json({
@@ -144,7 +144,19 @@ app.post("/interview/generate", async (req, res) => {
       });
     }
     
-    const questions = await ollamaService.generateInterviewQuestions(template, context);
+    // Validate difficulty
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) {
+      return res.status(400).json({
+        success: false,
+        error: "Difficulty must be one of: easy, medium, hard"
+      });
+    }
+    
+    // Add difficulty context to the prompt
+    const difficultyContext = `\n\nDifficulty Level: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`;
+    const enhancedContext = context ? `${context}${difficultyContext}` : difficultyContext;
+    
+    const questions = await ollamaService.generateInterviewQuestions(template, enhancedContext);
     
     // Process each question to add audio and animation properties
     for (let i = 0; i < questions.length; i++) {
@@ -183,6 +195,7 @@ app.post("/interview/generate", async (req, res) => {
     res.json({
       success: true,
       template,
+      difficulty,
       questions,
       count: questions.length,
       audioGenerated: includeAudio
@@ -199,7 +212,7 @@ app.post("/interview/generate", async (req, res) => {
 // Resume-specific endpoints
 app.post("/interview/resume/analyze", async (req, res) => {
   try {
-    const { resumeContent, template = "resume.general", includeAudio = true } = req.body;
+    const { resumeContent, template = "resume.general", difficulty = 'medium', includeAudio = true } = req.body;
     
     if (!resumeContent) {
       return res.status(400).json({
@@ -209,8 +222,16 @@ app.post("/interview/resume/analyze", async (req, res) => {
       });
     }
     
+    // Validate difficulty
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) {
+      return res.status(400).json({
+        success: false,
+        error: "Difficulty must be one of: easy, medium, hard"
+      });
+    }
+    
     // Generate context-aware questions based on resume content
-    const context = `Resume Content:\n${resumeContent}\n\nBased on this resume, generate relevant interview questions.`;
+    const context = `Resume Content:\n${resumeContent}\n\nBased on this resume, generate relevant interview questions.\n\nDifficulty Level: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`;
     const questions = await ollamaService.generateInterviewQuestions(template, context);
     
     // Process each question to add audio and animation properties
@@ -250,6 +271,7 @@ app.post("/interview/resume/analyze", async (req, res) => {
     res.json({
       success: true,
       template,
+      difficulty,
       questions,
       count: questions.length,
       resumeAnalyzed: true,
@@ -432,8 +454,8 @@ app.get('/api', (req, res) => {
           'GET /templates - Get available interview templates',
           'GET /templates/search - Search interview templates',
           'GET /templates/stats - Get template statistics',
-          'POST /generate - Generate interview questions',
-          'POST /resume/analyze - Analyze resume and generate questions',
+          'POST /generate - Generate interview questions (supports difficulty: easy, medium, hard)',
+          'POST /resume/analyze - Analyze resume and generate questions (supports difficulty: easy, medium, hard)',
           'GET /resume/templates - Get resume-specific templates'
         ]
       },
@@ -471,12 +493,12 @@ const execCommand = (command) => {
 // Helper function to determine facial expression based on question difficulty
 const getFacialExpressionForDifficulty = (difficulty) => {
   switch (difficulty) {
-    case "beginner":
-      return "smile";
-    case "intermediate":
+    case "easy":
       return "default";
-    case "advanced":
-      return "serious";
+    case "medium":
+      return "default";
+    case "hard":
+      return "default";
     default:
       return "default";
   }
@@ -485,18 +507,18 @@ const getFacialExpressionForDifficulty = (difficulty) => {
 // Helper function to determine animation based on question category
 const getAnimationForQuestionType = (category) => {
   const categoryAnimationMap = {
-    "Technical": "Talking_1",
-    "Behavioral": "Talking_2", 
-    "Leadership": "Talking_1",
-    "Problem-solving": "Thinking",
-    "System Design": "Explaining",
-    "Coding": "Talking_1",
-    "Database": "Talking_2",
-    "Framework": "Talking_1",
-    "General": "Talking_1"
+    "Technical": "Idle",
+    "Behavioral": "Idle", 
+    "Leadership": "Idle",
+    "Problem-solving": "Idle",
+    "System Design": "Idle",
+    "Coding": "Idle",
+    "Database": "Idle",
+    "Framework": "Idle",
+    "General": "Idle"
   };
   
-  return categoryAnimationMap[category] || "Talking_1";
+  return categoryAnimationMap[category] || "Idle";
 };
 
 // Function to call Piper TTS Python script

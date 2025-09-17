@@ -18,7 +18,8 @@ const createConversationSchema = Joi.object({
   user_answer_audio_url: Joi.string().uri().optional(),
   time_taken_seconds: Joi.number().integer().min(0).optional(),
   llm_feedback: Joi.string().optional(),
-  confidence_score: Joi.number().min(0).max(1).optional()
+  confidence_score: Joi.number().min(0).max(1).optional(),
+  auto_generate_answer: Joi.boolean().default(true)
 });
 
 const submitAnswerSchema = Joi.object({
@@ -56,13 +57,16 @@ router.post('/', authenticateToken, validateInput(createConversationSchema), asy
       });
     }
 
+    console.log(`🔄 Creating conversation for question ${conversationData.question_number}...`);
+    
     const conversation = await Conversation.create(conversationData);
 
     res.status(201).json({
       success: true,
       message: 'Conversation created successfully',
       data: {
-        conversation: conversation.toJSON()
+        conversation: conversation.toJSON(),
+        llm_answer_generated: !!conversation.llm_generated_answer
       }
     });
   } catch (error) {
@@ -391,6 +395,64 @@ router.put('/:id/feedback', authenticateToken, validateInput(updateFeedbackSchem
     res.status(500).json({
       success: false,
       message: 'Failed to update feedback',
+      error: error.message
+    });
+  }
+});
+
+// Regenerate LLM answer for a conversation
+router.post('/:id/regenerate-answer', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const conversation = await Conversation.findById(id);
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Conversation not found'
+      });
+    }
+
+    // Verify that the conversation belongs to the user (through session)
+    const session = await Session.findById(conversation.session_id);
+    if (!session || session.user_id !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    console.log(`🔄 Regenerating LLM answer for conversation ${id}...`);
+
+    // Generate new LLM answer
+    const LLMAnswerService = (await import('../services/llmAnswerService.js')).default;
+    const llmService = new LLMAnswerService();
+    
+    const newAnswer = await llmService.generateAnswer(
+      conversation.question_text,
+      conversation.question_category || 'General',
+      conversation.question_difficulty
+    );
+
+    // Update the conversation with the new answer
+    const updatedConversation = await conversation.update({
+      llm_generated_answer: newAnswer
+    });
+
+    res.json({
+      success: true,
+      message: 'LLM answer regenerated successfully',
+      data: {
+        conversation: updatedConversation.toJSON(),
+        answer_length: newAnswer.length
+      }
+    });
+  } catch (error) {
+    console.error('LLM answer regeneration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to regenerate LLM answer',
       error: error.message
     });
   }

@@ -309,7 +309,7 @@ router.get('/check-username/:username', async (req, res) => {
       success: true,
       data: {
         username,
-        available: !exists
+        available: exists
       }
     });
   } catch (error) {
@@ -332,7 +332,7 @@ router.get('/check-email/:email', async (req, res) => {
       success: true,
       data: {
         email,
-        available: !exists
+        available: exists
       }
     });
   } catch (error) {
