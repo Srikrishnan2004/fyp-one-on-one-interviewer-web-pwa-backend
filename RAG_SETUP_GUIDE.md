@@ -34,10 +34,11 @@ npm run test-embedding
 ```
 
 This will:
-- Initialize the embedding service with a reliable model
+- Initialize the embedding service with Xenova/all-MiniLM-L6-v2 model
 - Test single and multiple embedding generation
 - Verify similarity calculations
 - Confirm the service is working correctly
+- Use fallback to DistilBERT if needed
 
 ### 3. Environment Configuration
 
@@ -192,12 +193,19 @@ curl -X POST http://localhost:3000/api/rag/questions/batch \
 
 ## Model Information
 
-### all-MiniLM-L6-v2
+### Xenova/all-MiniLM-L6-v2 (Primary)
 - **Size**: ~80MB
 - **Dimensions**: 384
 - **Language**: English
 - **Use Case**: Sentence embeddings, semantic search
 - **Performance**: Fast inference, good quality embeddings
+
+### Xenova/distilbert-base-uncased (Fallback)
+- **Size**: ~250MB
+- **Dimensions**: 768
+- **Language**: English
+- **Use Case**: General text embeddings
+- **Performance**: Higher quality, slightly slower
 
 ### Storage Location
 - **Model Files**: `./models/embeddings/`
