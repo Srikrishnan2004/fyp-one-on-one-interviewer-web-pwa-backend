@@ -20,6 +20,7 @@ export class EmbeddingService {
   async initialize() {
     try {
       if (this.isInitialized) {
+        console.log('Embedding service already initialized, skipping...');
         return true;
       }
 
@@ -48,10 +49,10 @@ export class EmbeddingService {
       }
 
       this.isInitialized = true;
-      console.log('Embedding service initialized successfully');
+      console.log('✅ Embedding service initialized successfully');
       return true;
     } catch (error) {
-      console.error('Error initializing embedding service:', error);
+      console.error('❌ Error initializing embedding service:', error);
       throw new Error(`Failed to initialize embedding service: ${error.message}`);
     }
   }

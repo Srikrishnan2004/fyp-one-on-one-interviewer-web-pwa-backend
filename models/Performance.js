@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import FeedbackService from '../services/feedbackService.js';
 
 export class Performance {
   constructor(data) {
@@ -17,7 +18,7 @@ export class Performance {
     this.created_at = data.created_at;
   }
 
-  // Create a new performance record
+  // Create a new performance record with automatic improvement suggestions
   static async create(performanceData) {
     const {
       user_id,
@@ -29,8 +30,44 @@ export class Performance {
       metric_unit,
       performance_category,
       feedback_notes,
-      improvement_suggestions
+      improvement_suggestions,
+      auto_generate_suggestions = true
     } = performanceData;
+
+    let finalImprovementSuggestions = improvement_suggestions;
+
+    // Auto-generate improvement suggestions if not provided and auto_generate_suggestions is true
+    if (!finalImprovementSuggestions && auto_generate_suggestions && conversation_id) {
+      try {
+        console.log(`🧠 Generating improvement suggestions for performance record...`);
+        
+        // Get conversation data for context
+        const conversationQuery = `
+          SELECT question_text, question_difficulty, user_answer, llm_generated_answer
+          FROM conversations 
+          WHERE id = $1
+        `;
+        const conversationResult = await query(conversationQuery, [conversation_id]);
+        
+        if (conversationResult.rows.length > 0) {
+          const conversation = conversationResult.rows[0];
+          const feedbackService = new FeedbackService();
+          
+          finalImprovementSuggestions = await feedbackService.generateImprovementSuggestions({
+            user_answer: conversation.user_answer,
+            llm_answer: conversation.llm_generated_answer,
+            question_text: conversation.question_text,
+            question_difficulty: conversation.question_difficulty
+          });
+
+          console.log(`✅ Generated improvement suggestions: ${finalImprovementSuggestions}`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to generate improvement suggestions:`, error.message);
+        // Continue without suggestions if generation fails
+        finalImprovementSuggestions = finalImprovementSuggestions || 'Keep practicing to improve your performance.';
+      }
+    }
 
     const queryText = `
       INSERT INTO performance (
@@ -45,7 +82,7 @@ export class Performance {
     const values = [
       user_id, session_id, conversation_id, metric_type, metric_value,
       metric_max_value, metric_unit, performance_category, feedback_notes,
-      improvement_suggestions
+      finalImprovementSuggestions
     ];
 
     const result = await query(queryText, values);

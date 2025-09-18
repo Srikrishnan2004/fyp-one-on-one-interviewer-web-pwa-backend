@@ -1,15 +1,16 @@
 import express from 'express';
 import { DynamicQuestionService } from '../services/dynamicQuestionService.js';
+import serviceManager from '../services/serviceManager.js';
 import { authenticateToken, validateInput } from '../middleware/auth.js';
 import Joi from 'joi';
 
 const router = express.Router();
 
-// Initialize the dynamic question service
-const dynamicQuestionService = new DynamicQuestionService();
+// Register dynamic question service with the global service manager
+const dynamicQuestionService = serviceManager.register('dynamicQuestionService', new DynamicQuestionService());
 
 // Initialize services on startup
-dynamicQuestionService.initialize().catch(error => {
+serviceManager.initialize('dynamicQuestionService').catch(error => {
   console.error('Failed to initialize Dynamic Question Service:', error);
 });
 

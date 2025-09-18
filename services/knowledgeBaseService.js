@@ -25,10 +25,10 @@ export class KnowledgeBaseService {
         await this.ragService.initialize();
       }
       await this.ensureKnowledgeBaseDirectory();
-      console.log('Knowledge base service initialized successfully');
+      console.log('✅ Knowledge base service initialized successfully');
       return true;
     } catch (error) {
-      console.error('Failed to initialize knowledge base service:', error);
+      console.error('❌ Failed to initialize knowledge base service:', error);
       throw new Error(`Knowledge base initialization failed: ${error.message}`);
     }
   }

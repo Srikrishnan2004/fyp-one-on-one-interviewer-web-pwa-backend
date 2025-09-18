@@ -19,6 +19,7 @@ export class RAGService {
    */
   async initialize() {
     if (this.initialized) {
+      console.log('RAG service already initialized, skipping...');
       return true; // Already initialized
     }
     
@@ -33,10 +34,10 @@ export class RAGService {
       await this.createKnowledgeBaseCollections();
       
       this.initialized = true;
-      console.log('RAG service initialized successfully');
+      console.log('✅ RAG service initialized successfully');
       return true;
     } catch (error) {
-      console.error('Failed to initialize RAG service:', error);
+      console.error('❌ Failed to initialize RAG service:', error);
       throw new Error(`RAG initialization failed: ${error.message}`);
     }
   }

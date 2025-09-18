@@ -1,27 +1,23 @@
 import express from 'express';
 import RAGService from '../services/ragService.js';
 import KnowledgeBaseService from '../services/knowledgeBaseService.js';
+import serviceManager from '../services/serviceManager.js';
 import { authenticateToken, validateInput } from '../middleware/auth.js';
 import Joi from 'joi';
 
 const router = express.Router();
 
-// Initialize services
-const ragService = new RAGService();
-const knowledgeBaseService = new KnowledgeBaseService(ragService);
+// Register services with the global service manager
+const ragService = serviceManager.register('ragService', new RAGService());
+const knowledgeBaseService = serviceManager.register('knowledgeBaseService', new KnowledgeBaseService(ragService));
 
 // Initialize services only once
-let servicesInitialized = false;
 async function initializeServices() {
-  if (!servicesInitialized) {
-    servicesInitialized = true;
-    try {
-      await ragService.initialize();
-      await knowledgeBaseService.initialize();
-    } catch (error) {
-      console.error('Failed to initialize RAG services:', error);
-      servicesInitialized = false; // Reset flag on error
-    }
+  try {
+    await serviceManager.initialize('ragService');
+    await serviceManager.initialize('knowledgeBaseService');
+  } catch (error) {
+    console.error('Failed to initialize RAG services:', error);
   }
 }
 

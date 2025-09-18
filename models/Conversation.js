@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import LLMAnswerService from '../services/llmAnswerService.js';
+import FeedbackService from '../services/feedbackService.js';
 
 export class Conversation {
   constructor(data) {
@@ -168,21 +169,51 @@ export class Conversation {
     return new Conversation(result.rows[0]);
   }
 
-  // Submit user answer
+  // Submit user answer with automatic feedback generation
   async submitAnswer(userAnswer, options = {}) {
     const {
       user_answer_audio_url,
       time_taken_seconds,
       llm_feedback,
-      confidence_score
+      confidence_score,
+      auto_generate_feedback = true
     } = options;
+
+    let finalLlmFeedback = llm_feedback;
+    let finalConfidenceScore = confidence_score;
+
+    // Auto-generate feedback if not provided and auto_generate_feedback is true
+    if (!finalLlmFeedback && auto_generate_feedback && (userAnswer && userAnswer.trim() !== '')) {
+      try {
+        console.log(`🧠 Generating feedback for conversation ${this.id}...`);
+        
+        const feedbackService = new FeedbackService();
+        const feedback = await feedbackService.generateFeedback(
+          this.question_text,
+          userAnswer,
+          this.llm_generated_answer,
+          this.question_category || 'General',
+          this.question_difficulty
+        );
+
+        finalLlmFeedback = feedback.llm_feedback;
+        finalConfidenceScore = feedback.confidence_score;
+
+        console.log(`✅ Generated feedback with confidence score: ${finalConfidenceScore}`);
+      } catch (error) {
+        console.error(`❌ Failed to generate feedback for conversation ${this.id}:`, error.message);
+        // Continue without feedback if generation fails
+        finalLlmFeedback = finalLlmFeedback || 'Good effort! Keep practicing to improve your answers.';
+        finalConfidenceScore = finalConfidenceScore || 0.5;
+      }
+    }
 
     const updateData = {
       user_answer: userAnswer,
       user_answer_audio_url,
       time_taken_seconds,
-      llm_feedback,
-      confidence_score,
+      llm_feedback: finalLlmFeedback,
+      confidence_score: finalConfidenceScore,
       answer_timestamp: new Date()
     };
 

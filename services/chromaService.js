@@ -26,10 +26,10 @@ export class ChromaService {
   async initialize() {
     try {
       await this.client.heartbeat();
-      console.log('ChromaDB client initialized successfully');
+      console.log('✅ ChromaDB client initialized successfully');
       return true;
     } catch (error) {
-      console.error('Failed to initialize ChromaDB:', error);
+      console.error('❌ Failed to initialize ChromaDB:', error);
       throw new Error(`ChromaDB initialization failed: ${error.message}`);
     }
   }
@@ -55,6 +55,12 @@ export class ChromaService {
       console.log(`Collection '${name}' created successfully`);
       return collection;
     } catch (error) {
+      // If collection already exists, get the existing one
+      if (error.message && error.message.includes('already exists')) {
+        console.log(`Collection '${name}' already exists, retrieving existing collection`);
+        return await this.getCollection(name);
+      }
+      
       console.error(`Error creating collection '${name}':`, error);
       throw new Error(`Failed to create collection: ${error.message}`);
     }
