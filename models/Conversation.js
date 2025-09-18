@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import LLMAnswerService from '../services/llmAnswerService.js';
 import FeedbackService from '../services/feedbackService.js';
+import ConversationStorageService from '../services/conversationStorageService.js';
 
 export class Conversation {
   constructor(data) {
@@ -74,7 +75,32 @@ export class Conversation {
     ];
 
     const result = await query(queryText, values);
-    return new Conversation(result.rows[0]);
+    const conversation = new Conversation(result.rows[0]);
+
+    // Store conversation in ChromaDB for future retrieval and analysis
+    try {
+      const storageService = new ConversationStorageService();
+      await storageService.storeConversation({
+        id: conversation.id,
+        session_id: conversation.session_id,
+        question_text: conversation.question_text,
+        llm_generated_answer: conversation.llm_generated_answer,
+        user_answer: conversation.user_answer,
+        question_category: conversation.question_category,
+        question_difficulty: conversation.question_difficulty,
+        question_number: conversation.question_number,
+        confidence_score: conversation.confidence_score,
+        time_taken_seconds: conversation.time_taken_seconds,
+        llm_feedback: conversation.llm_feedback,
+        answer_timestamp: conversation.answer_timestamp
+      });
+      console.log(`✅ Conversation ${conversation.id} stored in ChromaDB`);
+    } catch (error) {
+      console.error(`❌ Failed to store conversation ${conversation.id} in ChromaDB:`, error.message);
+      // Don't throw error - continue with PostgreSQL result even if ChromaDB storage fails
+    }
+
+    return conversation;
   }
 
   // Find conversation by ID
@@ -217,7 +243,32 @@ export class Conversation {
       answer_timestamp: new Date()
     };
 
-    return await this.update(updateData);
+    const updatedConversation = await this.update(updateData);
+
+    // Update conversation in ChromaDB with new answer and feedback
+    try {
+      const storageService = new ConversationStorageService();
+      await storageService.storeConversation({
+        id: this.id,
+        session_id: this.session_id,
+        question_text: this.question_text,
+        llm_generated_answer: this.llm_generated_answer,
+        user_answer: userAnswer,
+        question_category: this.question_category,
+        question_difficulty: this.question_difficulty,
+        question_number: this.question_number,
+        confidence_score: finalConfidenceScore,
+        time_taken_seconds,
+        llm_feedback: finalLlmFeedback,
+        answer_timestamp: new Date()
+      });
+      console.log(`✅ Updated conversation ${this.id} in ChromaDB with user answer`);
+    } catch (error) {
+      console.error(`❌ Failed to update conversation ${this.id} in ChromaDB:`, error.message);
+      // Don't throw error - continue with PostgreSQL result even if ChromaDB update fails
+    }
+
+    return updatedConversation;
   }
 
   // Update LLM feedback

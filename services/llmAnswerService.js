@@ -24,7 +24,7 @@ export class LLMAnswerService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama3', // Use the default model
+          model: 'codellama:latest',
           prompt: fullPrompt,
           stream: false
         })
@@ -57,38 +57,39 @@ export class LLMAnswerService {
    */
   buildAnswerPrompt(category, difficulty) {
     const difficultyInstructions = {
-      easy: 'Provide a clear, beginner-friendly explanation with basic concepts and simple examples.',
-      medium: 'Provide a comprehensive explanation with practical examples and intermediate-level details.',
-      hard: 'Provide an expert-level explanation with advanced concepts, best practices, and complex examples.'
+      easy: 'Provide a clear, simple explanation with basic concepts.',
+      medium: 'Provide a straightforward explanation with practical examples.',
+      hard: 'Provide a direct explanation with advanced concepts and examples.'
     };
 
     const categoryInstructions = {
-      'Technical': 'Focus on technical implementation details, code examples, and technical best practices.',
-      'Behavioral': 'Focus on soft skills, communication, teamwork, and professional behavior examples.',
-      'Leadership': 'Focus on leadership principles, management strategies, and team-building examples.',
-      'Problem-solving': 'Focus on analytical thinking, problem-solving methodologies, and step-by-step approaches.',
-      'System Design': 'Focus on architecture, scalability, performance, and system design principles.',
-      'Coding': 'Include code examples, algorithms, data structures, and programming best practices.',
-      'Database': 'Focus on database design, optimization, query performance, and data management.',
-      'Framework': 'Focus on framework-specific features, best practices, and implementation patterns.',
-      'General': 'Provide a well-rounded answer covering multiple aspects of the topic.'
+      'Technical': 'Focus on technical details and code examples.',
+      'Behavioral': 'Focus on soft skills and professional behavior.',
+      'Leadership': 'Focus on leadership principles and management.',
+      'Problem-solving': 'Focus on analytical thinking and methodologies.',
+      'System Design': 'Focus on architecture and design principles.',
+      'Coding': 'Include code examples and programming concepts.',
+      'Database': 'Focus on database design and optimization.',
+      'Framework': 'Focus on framework features and patterns.',
+      'General': 'Provide a clear, direct answer.'
     };
 
     const difficultyInstruction = difficultyInstructions[difficulty] || difficultyInstructions.medium;
     const categoryInstruction = categoryInstructions[category] || categoryInstructions.General;
 
-    return `You are an expert interviewer and technical mentor. Your task is to provide a high-quality answer to an interview question.
+    return `You are an expert providing a direct answer to an interview question.
 
 Instructions:
 - ${difficultyInstruction}
 - ${categoryInstruction}
-- Structure your answer clearly with proper formatting
-- Include relevant examples and practical insights
-- Demonstrate deep knowledge and expertise
-- Be concise but comprehensive
-- Use professional language appropriate for an interview setting
+- Give a direct, clear answer without unnecessary introductions
+- Don't use phrases like "In this response", "Here's the answer", "Let me explain"
+- Start directly with the answer content
+- Be concise and to the point
+- Include relevant examples when helpful
+- Use professional but straightforward language
 
-Format your answer as a well-structured response that would impress an interviewer.`;
+Provide only the answer content, no meta-commentary or introductions.`;
   }
 
   /**
@@ -104,7 +105,20 @@ Format your answer as a well-structured response that would impress an interview
       'Answer:',
       'Here\'s my answer:',
       'The answer is:',
-      'Here\'s a detailed answer:'
+      'Here\'s a detailed answer:',
+      'In this response,',
+      'In this answer,',
+      'To answer this question,',
+      'Let me explain:',
+      'Let me provide an answer:',
+      'Here\'s what I think:',
+      'Based on my knowledge,',
+      'From my experience,',
+      'In my opinion,',
+      'The key points are:',
+      'Here\'s the explanation:',
+      'Let me break this down:',
+      'To address this question:'
     ];
 
     for (const prefix of prefixes) {
@@ -119,7 +133,13 @@ Format your answer as a well-structured response that would impress an interview
       'I hope this helps!',
       'Let me know if you need clarification.',
       'Does this answer your question?',
-      'Feel free to ask for more details.'
+      'Feel free to ask for more details.',
+      'I hope this clarifies the concept.',
+      'Let me know if you need more information.',
+      'This should help you understand.',
+      'Feel free to ask if you have questions.',
+      'I hope this explanation is helpful.',
+      'Let me know if you need further clarification.'
     ];
 
     for (const suffix of suffixes) {
@@ -129,7 +149,30 @@ Format your answer as a well-structured response that would impress an interview
       }
     }
 
-    return answer;
+    // Remove any remaining meta-commentary at the beginning
+    const metaPhrases = [
+      'This is a',
+      'This question is about',
+      'To understand this',
+      'When answering this',
+      'For this question'
+    ];
+
+    for (const phrase of metaPhrases) {
+      if (answer.toLowerCase().startsWith(phrase.toLowerCase())) {
+        // Find the first sentence and remove it if it's meta-commentary
+        const sentences = answer.split('. ');
+        if (sentences.length > 1) {
+          const firstSentence = sentences[0];
+          if (firstSentence.length < 100 && firstSentence.toLowerCase().includes('question')) {
+            answer = sentences.slice(1).join('. ');
+          }
+        }
+        break;
+      }
+    }
+
+    return answer.trim();
   }
 
   /**
@@ -141,11 +184,11 @@ Format your answer as a well-structured response that would impress an interview
    */
   generateFallbackAnswer(question, category, difficulty) {
     const fallbackAnswers = {
-      easy: `This is a fundamental question about ${category.toLowerCase()}. The basic answer involves understanding core concepts and applying them in simple scenarios. A good approach would be to start with the basics and build up understanding step by step.`,
+      easy: `This is a basic ${category.toLowerCase()} concept. Focus on understanding the fundamentals and simple applications.`,
       
-      medium: `This question requires a solid understanding of ${category.toLowerCase()} concepts. The answer involves practical application of knowledge, considering real-world scenarios and best practices. It's important to demonstrate both theoretical knowledge and practical experience.`,
+      medium: `This ${category.toLowerCase()} question requires practical knowledge and real-world application. Consider both theory and implementation.`,
       
-      hard: `This is an advanced question that tests deep expertise in ${category.toLowerCase()}. The answer requires sophisticated understanding of complex concepts, advanced problem-solving skills, and the ability to design scalable, efficient solutions. Expert-level knowledge and experience are essential.`
+      hard: `This is an advanced ${category.toLowerCase()} topic requiring deep expertise and complex problem-solving skills.`
     };
 
     return fallbackAnswers[difficulty] || fallbackAnswers.medium;

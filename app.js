@@ -14,6 +14,7 @@ import conversationRoutes from './routes/conversations.js';
 import performanceRoutes from './routes/performance.js';
 import ragRoutes from './routes/rag.js';
 import dynamicQuestionRoutes from './routes/dynamicQuestions.js';
+import conversationStorageRoutes from './routes/conversationStorage.js';
 
 // Load environment variables
 dotenv.config();
@@ -355,6 +356,7 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/rag', ragRoutes);
 app.use('/api/dynamic-questions', dynamicQuestionRoutes);
+app.use('/api/conversation-storage', conversationStorageRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req, res) => {
@@ -461,6 +463,19 @@ app.get('/api', (req, res) => {
           'GET /test - Test dynamic question service',
           'GET /skill-domains - Get available skill domains',
           'GET /algorithm - Get algorithm explanation and steps'
+        ]
+      },
+      conversationStorage: {
+        base: '/api/conversation-storage',
+        routes: [
+          'POST /search - Search similar conversations in ChromaDB',
+          'GET /:conversationId - Get conversation by ID from ChromaDB',
+          'GET /session/:sessionId - Get conversations by session from ChromaDB',
+          'POST /store - Manually store conversation in ChromaDB',
+          'POST /store/batch - Store multiple conversations in ChromaDB',
+          'POST /extract-knowledge - Extract knowledge from session conversations',
+          'GET /stats/overview - Get conversation storage statistics',
+          'GET /test/health - Test conversation storage service health'
         ]
       },
       interview: {
