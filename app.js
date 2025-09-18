@@ -13,6 +13,7 @@ import sessionRoutes from './routes/sessions.js';
 import conversationRoutes from './routes/conversations.js';
 import performanceRoutes from './routes/performance.js';
 import ragRoutes from './routes/rag.js';
+import dynamicQuestionRoutes from './routes/dynamicQuestions.js';
 
 // Load environment variables
 dotenv.config();
@@ -353,6 +354,7 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/rag', ragRoutes);
+app.use('/api/dynamic-questions', dynamicQuestionRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req, res) => {
@@ -419,6 +421,7 @@ app.get('/api', (req, res) => {
           'GET /summary - Get performance summary',
           'GET /trends/:metricType - Get performance trends',
           'GET /insights - Get performance insights',
+          'GET /session/:sessionId/insights - Get AI insights for specific session',
           'GET /compare-sessions - Compare session performance',
           'GET /leaderboard/:metricType - Get performance leaderboard',
           'GET /dashboard/analytics - Get dashboard analytics',
@@ -446,6 +449,18 @@ app.get('/api', (req, res) => {
           'GET /categories - Get available categories',
           'GET /test/embedding - Test embedding service',
           'GET /test/chroma - Test ChromaDB service'
+        ]
+      },
+      dynamicQuestions: {
+        base: '/api/dynamic-questions',
+        routes: [
+          'POST /initialize - Initialize dynamic question session (Step 1)',
+          'POST /process-answer - Process user answer and get next question (Step 3)',
+          'POST /generate-report - Generate performance report (Step 7)',
+          'GET /session/:sessionId/status - Get session status',
+          'GET /test - Test dynamic question service',
+          'GET /skill-domains - Get available skill domains',
+          'GET /algorithm - Get algorithm explanation and steps'
         ]
       },
       interview: {

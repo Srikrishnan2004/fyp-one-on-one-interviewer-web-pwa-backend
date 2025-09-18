@@ -235,6 +235,47 @@ router.get('/insights', authenticateToken, async (req, res) => {
   }
 });
 
+// Get AI insights for a specific session
+router.get('/session/:sessionId/insights', authenticateToken, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user.id;
+
+    // Verify session ownership
+    const session = await Session.findById(sessionId);
+    if (!session || session.user_id !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to session'
+      });
+    }
+
+    console.log(`🧠 Generating AI insights for session ${sessionId}`);
+
+    // Get session-specific insights
+    const insights = await Performance.getSessionInsights(userId, sessionId);
+
+    res.json({
+      success: true,
+      message: 'Session insights generated successfully',
+      data: {
+        session_id: sessionId,
+        session_name: session.session_name,
+        session_type: session.session_type,
+        insights: insights,
+        generated_at: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Session insights error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate session insights',
+      error: error.message
+    });
+  }
+});
+
 // Get performance comparison between sessions
 router.get('/compare-sessions', authenticateToken, async (req, res) => {
   try {
