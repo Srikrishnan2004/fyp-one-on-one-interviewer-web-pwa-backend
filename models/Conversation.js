@@ -147,7 +147,7 @@ export class Conversation {
     for (const [key, value] of Object.entries(updateData)) {
       if (allowedFields.includes(key) && value !== undefined) {
         updates.push(`${key} = $${paramCount}`);
-        values.push(value);
+        values.push(value === '' ? null : value); // Convert empty string to null
         paramCount++;
       }
     }

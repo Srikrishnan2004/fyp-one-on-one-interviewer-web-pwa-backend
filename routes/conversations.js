@@ -23,7 +23,7 @@ const createConversationSchema = Joi.object({
 });
 
 const submitAnswerSchema = Joi.object({
-  user_answer: Joi.string().min(1).required(),
+  user_answer: Joi.string().allow('').optional(), // Allow empty string or no answer
   user_answer_audio_url: Joi.string().uri().optional(),
   time_taken_seconds: Joi.number().integer().min(0).optional(),
   llm_feedback: Joi.string().optional(),
@@ -333,7 +333,10 @@ router.put('/:id/answer', authenticateToken, validateInput(submitAnswerSchema), 
       });
     }
 
-    const updatedConversation = await conversation.submitAnswer(user_answer, {
+    // Handle empty or missing user_answer
+    const finalUserAnswer = user_answer || null; // Convert empty string to null for database
+    
+    const updatedConversation = await conversation.submitAnswer(finalUserAnswer, {
       user_answer_audio_url,
       time_taken_seconds,
       llm_feedback,
@@ -342,9 +345,10 @@ router.put('/:id/answer', authenticateToken, validateInput(submitAnswerSchema), 
 
     res.json({
       success: true,
-      message: 'Answer submitted successfully',
+      message: finalUserAnswer ? 'Answer submitted successfully' : 'Conversation updated (no answer provided)',
       data: {
-        conversation: updatedConversation.toJSON()
+        conversation: updatedConversation.toJSON(),
+        answer_provided: !!finalUserAnswer
       }
     });
   } catch (error) {

@@ -390,6 +390,35 @@ Content-Type: application/json
 }
 ```
 
+**Note:** The `user_answer` field is optional and can be:
+- A valid string answer
+- An empty string `""` (converted to null in database)
+- Omitted entirely (treated as null)
+
+**Response (with answer):**
+```json
+{
+  "success": true,
+  "message": "Answer submitted successfully",
+  "data": {
+    "conversation": { /* updated conversation object */ },
+    "answer_provided": true
+  }
+}
+```
+
+**Response (without answer):**
+```json
+{
+  "success": true,
+  "message": "Conversation updated (no answer provided)",
+  "data": {
+    "conversation": { /* updated conversation object */ },
+    "answer_provided": false
+  }
+}
+```
+
 ### Update LLM Feedback
 ```http
 PUT /api/conversations/{conversation_id}/feedback
