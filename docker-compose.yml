@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Multi-language development environment
+  dev-environment:
+    build: 
+      context: .
+      args:
+        USERNAME: developer
+        USER_UID: 1000
+        USER_GID: 1000
+    container_name: virtual-interviewer-dev
+    ports:
+      - "3000:3000"  # Node.js/Express
+      - "5000:5000"  # Python Flask
+      - "8000:8000"  # Python Django
+      - "8080:8080"  # Java Spring Boot
+    volumes:
+      - .:/app
+      - /app/node_modules  # Prevent node_modules from being overwritten
+    environment:
+      - NODE_ENV=development
+      - PYTHONPATH=/app
+      - JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+      - USER=developer
+    working_dir: /app
+    user: developer
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    networks:
+      - dev-network
+
+  # PostgreSQL database (if needed)
+  postgres:
+    image: postgres:15
+    container_name: virtual-interviewer-postgres
+    environment:
+      POSTGRES_DB: virtual_interviewer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+
+  # Redis (for caching/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: virtual-interviewer-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

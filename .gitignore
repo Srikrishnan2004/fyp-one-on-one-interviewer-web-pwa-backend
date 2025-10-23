@@ -3,4 +3,5 @@ node_modules
 bin
 audios/message_*
 audios/interview_*
+audios/dynamic_question_*
 chroma_db

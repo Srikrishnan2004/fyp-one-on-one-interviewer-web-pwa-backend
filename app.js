@@ -14,7 +14,9 @@ import conversationRoutes from './routes/conversations.js';
 import performanceRoutes from './routes/performance.js';
 import ragRoutes from './routes/rag.js';
 import dynamicQuestionRoutes from './routes/dynamicQuestions.js';
+import dynamicQuestionGeneratorRoutes from './routes/dynamicQuestionGenerator.js';
 import conversationStorageRoutes from './routes/conversationStorage.js';
+import whisperRoutes from './routes/whisper.js';
 
 // Load environment variables
 dotenv.config();
@@ -356,7 +358,9 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/rag', ragRoutes);
 app.use('/api/dynamic-questions', dynamicQuestionRoutes);
+app.use('/api/dynamic-question-generator', dynamicQuestionGeneratorRoutes);
 app.use('/api/conversation-storage', conversationStorageRoutes);
+app.use('/api/whisper', whisperRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req, res) => {
@@ -465,6 +469,20 @@ app.get('/api', (req, res) => {
           'GET /algorithm - Get algorithm explanation and steps'
         ]
       },
+      dynamicQuestionGenerator: {
+        base: '/api/dynamic-question-generator',
+        routes: [
+          'POST /initialize - Initialize session with skill domain and difficulty (Step 1)',
+          'GET /session/:sessionId/next-question?includeAudio=true&includeAnimation=true - Get next question with TTS and animation (Step 3)',
+          'POST /session/:sessionId/process-answer - Process answer and adapt (Steps 4-5)',
+          'POST /session/:sessionId/generate-report - Generate performance report (Step 7)',
+          'GET /session/:sessionId/status - Get session status and progress',
+          'GET /skill-domains - Get available skill domains',
+          'GET /algorithm - Get detailed algorithm explanation',
+          'GET /test - Test dynamic question generator',
+          'GET /health - Health check for service'
+        ]
+      },
       conversationStorage: {
         base: '/api/conversation-storage',
         routes: [
@@ -476,6 +494,18 @@ app.get('/api', (req, res) => {
           'POST /extract-knowledge - Extract knowledge from session conversations',
           'GET /stats/overview - Get conversation storage statistics',
           'GET /test/health - Test conversation storage service health'
+        ]
+      },
+      whisper: {
+        base: '/api/whisper',
+        routes: [
+          'POST /transcribe-file - Transcribe audio file from file upload (local Whisper)',
+          'POST /transcribe-base64 - Transcribe audio from base64 data (local Whisper)',
+          'POST /transcribe-url - Transcribe audio from URL (local Whisper)',
+          'GET /languages - Get supported languages',
+          'GET /models - Get available Whisper models (tiny, base, small, medium, large)',
+          'GET /status - Check if local Whisper is available and working',
+          'POST /validate-file - Validate audio file before transcription'
         ]
       },
       interview: {
