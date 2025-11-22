@@ -43,6 +43,66 @@ const upload = multer({
 });
 
 /**
+ * @route POST /api/whisper/transcribe
+ * @desc Convert recorded audio to text using local Whisper service
+ * @access Private
+ */
+router.post('/transcribe', authenticateToken, upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        text: null,
+        error: 'No audio file provided'
+      });
+    }
+
+    const options = {
+      model: req.body.model || 'base',
+      language: req.body.language || 'en',
+      prompt: req.body.prompt || '',
+      responseFormat: req.body.responseFormat || 'json',
+      temperature: parseFloat(req.body.temperature) || 0.0
+    };
+
+    console.log(`🎤 Processing audio file: ${req.file.originalname}`);
+    
+    const result = await whisperService.transcribeFromFormData(req.file, options);
+    
+    // Clean up uploaded file
+    try {
+      const fs = await import('fs');
+      fs.unlinkSync(req.file.path);
+      console.log(`🗑️ Cleaned up uploaded file: ${req.file.path}`);
+    } catch (cleanupError) {
+      console.warn('⚠️ Failed to clean up uploaded file:', cleanupError.message);
+    }
+
+    if (result.success) {
+      res.json({
+        success: true,
+        text: result.text,
+        error: null
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        text: null,
+        error: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Transcription error:', error);
+    res.status(500).json({
+      success: false,
+      text: null,
+      error: error.message || 'Transcription failed'
+    });
+  }
+});
+
+/**
  * @route POST /api/whisper/transcribe-file
  * @desc Transcribe audio file from file upload
  * @access Private

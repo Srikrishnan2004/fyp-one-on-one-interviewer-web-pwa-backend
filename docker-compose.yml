@@ -1,30 +1,25 @@
 version: '3.8'
 
 services:
-  # Multi-language development environment
-  dev-environment:
+  # Coding challenge environment
+  coding-environment:
     build: 
       context: .
       args:
-        USERNAME: developer
-        USER_UID: 1000
-        USER_GID: 1000
-    container_name: virtual-interviewer-dev
+        USERNAME: coder
+        USER_GID: 2000
+    container_name: coding-challenge-env
     ports:
-      - "3000:3000"  # Node.js/Express
-      - "5000:5000"  # Python Flask
-      - "8000:8000"  # Python Django
-      - "8080:8080"  # Java Spring Boot
+      - "4000:4000"  # Coding challenge server
     volumes:
       - .:/app
-      - /app/node_modules  # Prevent node_modules from being overwritten
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PYTHONPATH=/app
       - JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-      - USER=developer
+      - USER=coder
     working_dir: /app
-    user: developer
+    user: coder
     command: /bin/bash
     stdin_open: true
     tty: true

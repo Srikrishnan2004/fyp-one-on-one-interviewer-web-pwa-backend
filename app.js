@@ -17,6 +17,9 @@ import dynamicQuestionRoutes from './routes/dynamicQuestions.js';
 import dynamicQuestionGeneratorRoutes from './routes/dynamicQuestionGenerator.js';
 import conversationStorageRoutes from './routes/conversationStorage.js';
 import whisperRoutes from './routes/whisper.js';
+import codeExecutionRoutes from './routes/codeExecution.js';
+import problemStatementsRoutes from './routes/problemStatements.js';
+import learnCodingRoutes from './routes/learnCoding.js';
 
 // Load environment variables
 dotenv.config();
@@ -361,6 +364,9 @@ app.use('/api/dynamic-questions', dynamicQuestionRoutes);
 app.use('/api/dynamic-question-generator', dynamicQuestionGeneratorRoutes);
 app.use('/api/conversation-storage', conversationStorageRoutes);
 app.use('/api/whisper', whisperRoutes);
+app.use('/api/code-execution', codeExecutionRoutes);
+app.use('/api/problems', problemStatementsRoutes);
+app.use('/api/learn-coding', learnCodingRoutes);
 
 // API Documentation endpoint
 app.get('/api', (req, res) => {
@@ -499,6 +505,7 @@ app.get('/api', (req, res) => {
       whisper: {
         base: '/api/whisper',
         routes: [
+          'POST /transcribe - Convert recorded audio to text using local Whisper service',
           'POST /transcribe-file - Transcribe audio file from file upload (local Whisper)',
           'POST /transcribe-base64 - Transcribe audio from base64 data (local Whisper)',
           'POST /transcribe-url - Transcribe audio from URL (local Whisper)',
@@ -506,6 +513,56 @@ app.get('/api', (req, res) => {
           'GET /models - Get available Whisper models (tiny, base, small, medium, large)',
           'GET /status - Check if local Whisper is available and working',
           'POST /validate-file - Validate audio file before transcription'
+        ]
+      },
+      codeExecution: {
+        base: '/api/code-execution',
+        routes: [
+          'POST /run - Execute code in Docker container (supports C, C++, Python, Java, C#, JavaScript)',
+          'GET /languages - Get supported programming languages',
+          'GET /status - Check if coding environment container is running',
+          'POST /test - Run test cases to verify all languages work'
+        ]
+      },
+      problemStatements: {
+        base: '/api/problems',
+        routes: [
+          'GET / - Get all problems with pagination and filtering',
+          'GET /random - Get random problems for practice',
+          'GET /:id - Get problem by ID with full details',
+          'POST / - Create new problem (requires auth)',
+          'PUT /:id - Update problem (requires auth)',
+          'DELETE /:id - Soft delete problem (requires auth)',
+          'GET /categories - Get all problem categories',
+          'GET /categories/:id - Get category by ID',
+          'POST /categories - Create new category (requires auth)',
+          'PUT /categories/:id - Update category (requires auth)',
+          'DELETE /categories/:id - Delete category (requires auth)',
+          'GET /:id/test-cases - Get test cases for a problem',
+          'POST /:id/test-cases - Create new test case (requires auth)',
+          'PUT /test-cases/:testCaseId - Update test case (requires auth)',
+          'DELETE /test-cases/:testCaseId - Delete test case (requires auth)',
+          'GET /:id/solutions - Get solutions for a problem',
+          'POST /:id/solutions - Create new solution (requires auth)',
+          'PUT /solutions/:solutionId - Update solution (requires auth)',
+          'DELETE /solutions/:solutionId - Delete solution (requires auth)',
+          'GET /attempts - Get user attempts with pagination (requires auth)',
+          'GET /:id/attempts - Get user attempts for specific problem (requires auth)',
+          'POST /:id/attempts - Submit code attempt (requires auth)',
+          'PUT /attempts/:attemptId - Update attempt results (requires auth)',
+          'GET /analytics/stats - Get problem statistics',
+          'GET /analytics/popular - Get most popular problems',
+          'GET /analytics/categories - Get category statistics',
+          'GET /analytics/user-performance - Get user performance stats (requires auth)',
+          'GET /difficulty-levels - Get all difficulty levels',
+          'GET /programming-languages - Get all programming languages'
+        ]
+      },
+      learnCoding: {
+        base: '/api/learn-coding',
+        routes: [
+          'POST /learn-coding - Submit code with voice explanation for AI analysis (requires auth)',
+          'GET /health - Check service health and dependencies'
         ]
       },
       interview: {

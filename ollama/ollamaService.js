@@ -19,9 +19,32 @@ class OllamaService {
    */
   async generateResponse(userMessage, model = this.defaultModel) {
     try {
-      // Prepare prompt for Ollama
-      const systemPrompt = `You are a virtual AI interviewer.\nYou will always reply with a JSON array of messages. With a maximum of 3 messages. Each message has a text, facialExpression, and animation property. Use "default" for facialExpression and "Idle" for animation unless the context specifically calls for something different.`;
-      const prompt = `${systemPrompt}\nUser: ${userMessage || "Hello"}`;
+      // Check if this is a learn coding request by looking for specific patterns
+      const isLearnCodingRequest = userMessage.includes('You are an expert coding instructor') || 
+                                 userMessage.includes('Code:') ||
+                                 userMessage.includes('Student\'s Voice Explanation');
+      
+      let systemPrompt, prompt;
+      
+      if (isLearnCodingRequest) {
+        // Special handling for learn coding requests
+        systemPrompt = `You are an expert coding instructor. You must respond with a valid JSON object containing two fields:
+1. "text": A detailed textual explanation of the code analysis
+2. "code": Code suggestions or improvements (can be null if no code suggestions)
+
+Example response format:
+{
+  "text": "Your detailed explanation here...",
+  "code": "// Suggested code improvements here..."
+}
+
+Always respond with valid JSON only, no additional text before or after.`;
+        prompt = `${systemPrompt}\n\n${userMessage}`;
+      } else {
+        // Regular interview response
+        systemPrompt = `You are a virtual AI interviewer.\nYou will always reply with a JSON array of messages. With a maximum of 3 messages. Each message has a text, facialExpression, and animation property. Use "default" for facialExpression and "Idle" for animation unless the context specifically calls for something different.`;
+        prompt = `${systemPrompt}\nUser: ${userMessage || "Hello"}`;
+      }
 
       // Call Ollama local LLM
       const ollamaRes = await fetch(`${this.baseUrl}/api/generate`, {
@@ -42,27 +65,99 @@ class OllamaService {
       let messages;
 
       try {
-        messages = JSON.parse(ollamaData.response);
-        if (messages.messages) messages = messages.messages;
+        if (isLearnCodingRequest) {
+          // Handle learn coding response
+          let responseText = ollamaData.response.trim();
+          
+          // Clean the response to extract JSON and remove control characters
+          const jsonStart = responseText.indexOf('{');
+          const jsonEnd = responseText.lastIndexOf('}');
+          
+          if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+            const jsonString = responseText.substring(jsonStart, jsonEnd + 1);
+            
+            // Clean control characters that break JSON parsing
+            const cleanedJsonString = jsonString
+              .replace(/[\r\n\t]/g, ' ')  // Replace newlines and tabs with spaces
+              .replace(/\s+/g, ' ')        // Replace multiple spaces with single space
+              .replace(/\\/g, '\\\\')       // Escape backslashes
+              .replace(/"/g, '\\"')         // Escape quotes
+              .replace(/\n/g, '\\n')        // Escape newlines
+              .replace(/\r/g, '\\r')        // Escape carriage returns
+              .replace(/\t/g, '\\t');       // Escape tabs
+            
+            try {
+              const parsedResponse = JSON.parse(jsonString);
+              
+              // Ensure we have the required fields
+              messages = {
+                text: parsedResponse.text || "Code analysis completed successfully.",
+                code: parsedResponse.code || null
+              };
+            } catch (parseError) {
+              console.error("JSON parse error, using fallback:", parseError);
+              // Fallback: extract text manually using regex
+              const textMatch = jsonString.match(/"text":\s*"([^"]*(?:\\.[^"]*)*)"/);
+              const codeMatch = jsonString.match(/"code":\s*"([^"]*(?:\\.[^"]*)*)"/);
+              
+              messages = {
+                text: textMatch ? textMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\t/g, '\t') : responseText.substring(0, 500),
+                code: codeMatch ? codeMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\t/g, '\t') : null
+              };
+            }
+          } else {
+            // Fallback if JSON parsing fails
+            messages = {
+              text: responseText || "Code analysis completed successfully.",
+              code: null
+            };
+          }
+        } else {
+          // Handle regular interview response
+          messages = JSON.parse(ollamaData.response);
+          if (messages.messages) messages = messages.messages;
+        }
       } catch (e) {
         console.error("Failed to parse Ollama response:", e);
-        // fallback: return a default message if parsing fails
-        messages = [{ 
-          text: "Sorry, I couldn't process your request.", 
-          facialExpression: "default", 
-          animation: "Idle" 
-        }];
+        console.error("Raw response:", ollamaData.response);
+        
+        if (isLearnCodingRequest) {
+          // Fallback for learn coding requests
+          messages = {
+            text: "Code analysis completed, but response format was unexpected.",
+            code: null
+          };
+        } else {
+          // Fallback for regular requests
+          messages = [{ 
+            text: "Sorry, I couldn't process your request.", 
+            facialExpression: "default", 
+            animation: "Idle" 
+          }];
+        }
       }
 
       return messages;
     } catch (error) {
       console.error("Ollama service error:", error);
-      // Return fallback message on any error
-      return [{ 
-        text: "Sorry, I'm having trouble connecting right now.", 
-        facialExpression: "sad", 
-        animation: "Idle" 
-      }];
+      
+      // Return appropriate fallback based on request type
+      const isLearnCodingRequest = userMessage.includes('You are an expert coding instructor') || 
+                                 userMessage.includes('Code:') ||
+                                 userMessage.includes('Student\'s Voice Explanation');
+      
+      if (isLearnCodingRequest) {
+        return {
+          text: "Sorry, I'm having trouble analyzing your code right now.",
+          code: null
+        };
+      } else {
+        return [{ 
+          text: "Sorry, I'm having trouble connecting right now.", 
+          facialExpression: "sad", 
+          animation: "Idle" 
+        }];
+      }
     }
   }
 

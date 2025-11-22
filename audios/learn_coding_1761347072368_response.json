@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "soundFile": "C:\\KrishnasFYP\\r3f-virtual-interviewer-backend\\audios\\learn_coding_1761347072368_response.wav",
+    "duration": 2.87
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.20, "value": "B" },
+    { "start": 0.20, "end": 0.27, "value": "D" },
+    { "start": 0.27, "end": 0.41, "value": "B" },
+    { "start": 0.41, "end": 0.55, "value": "C" },
+    { "start": 0.55, "end": 0.69, "value": "B" },
+    { "start": 0.69, "end": 0.87, "value": "X" },
+    { "start": 0.87, "end": 0.91, "value": "B" },
+    { "start": 0.91, "end": 0.95, "value": "C" },
+    { "start": 0.95, "end": 1.16, "value": "B" },
+    { "start": 1.16, "end": 1.23, "value": "C" },
+    { "start": 1.23, "end": 1.30, "value": "B" },
+    { "start": 1.30, "end": 1.42, "value": "A" },
+    { "start": 1.42, "end": 1.48, "value": "B" },
+    { "start": 1.48, "end": 1.53, "value": "D" },
+    { "start": 1.53, "end": 1.67, "value": "B" },
+    { "start": 1.67, "end": 1.74, "value": "C" },
+    { "start": 1.74, "end": 1.95, "value": "F" },
+    { "start": 1.95, "end": 2.03, "value": "A" },
+    { "start": 2.03, "end": 2.79, "value": "B" },
+    { "start": 2.79, "end": 2.87, "value": "X" }
+  ]
+}

@@ -1,0 +1,15 @@
+/app/solutions/temp_project/bin/Debug/net8.0/temp_project
+/app/solutions/temp_project/bin/Debug/net8.0/temp_project.deps.json
+/app/solutions/temp_project/bin/Debug/net8.0/temp_project.runtimeconfig.json
+/app/solutions/temp_project/bin/Debug/net8.0/temp_project.dll
+/app/solutions/temp_project/bin/Debug/net8.0/temp_project.pdb
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.GeneratedMSBuildEditorConfig.editorconfig
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.AssemblyInfoInputs.cache
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.AssemblyInfo.cs
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.csproj.CoreCompileInputs.cache
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.sourcelink.json
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.dll
+/app/solutions/temp_project/obj/Debug/net8.0/refint/temp_project.dll
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.pdb
+/app/solutions/temp_project/obj/Debug/net8.0/temp_project.genruntimeconfig.cache
+/app/solutions/temp_project/obj/Debug/net8.0/ref/temp_project.dll

@@ -1,6 +1,6 @@
-# Multi-Language Development Environment
+# LeetCode-like Coding Challenge Environment
 
-This Docker setup provides a comprehensive development environment with the latest versions of C, C++, Python, Java, C#, and JavaScript/Node.js.
+This Docker setup provides a streamlined environment specifically designed for coding challenges and problem-solving platforms like LeetCode, HackerRank, or CodeSignal.
 
 ## 🚀 Included Languages & Versions
 
@@ -10,23 +10,23 @@ This Docker setup provides a comprehensive development environment with the late
 - **C#**: .NET 8 (latest LTS)
 - **JavaScript**: Node.js 20 (latest LTS)
 
-## 🔧 Security Features
+## 🎯 Optimized for Coding Challenges
 
-- **Non-root user**: Container runs as `developer` user (UID 1000) for better security
-- **Sudo access**: User has passwordless sudo for system operations when needed
-- **Proper permissions**: All project directories owned by the developer user
-- **Isolated environment**: Secure containerization with minimal attack surface
+- **Minimal footprint**: Only essential packages for coding challenges
+- **Fast execution**: Optimized for quick compilation and execution
+- **Security**: Non-root user with restricted permissions
+- **Isolated environment**: Safe for running untrusted code
 
 ## 🛠️ Quick Start
 
 ### Option 1: Docker Compose (Recommended)
 
 ```bash
-# Build and start the development environment
-docker-compose up -d dev-environment
+# Build and start the coding challenge environment
+docker-compose up -d coding-environment
 
 # Access the container
-docker-compose exec dev-environment bash
+docker-compose exec coding-environment bash
 
 # Stop the environment
 docker-compose down
@@ -36,57 +36,50 @@ docker-compose down
 
 ```bash
 # Build the image with custom user settings
-docker build --build-arg USERNAME=developer --build-arg USER_UID=1000 --build-arg USER_GID=1000 -t multi-lang-dev .
+docker build --build-arg USERNAME=coder --build-arg USER_UID=1000 --build-arg USER_GID=1000 -t coding-challenge-env .
 
 # Run the container
-docker run -it -p 3000:3000 -p 5000:5000 -p 8000:8000 -p 8080:8080 -v $(pwd):/app --user developer multi-lang-dev
+docker run -it -p 3000:3000 -v $(pwd):/app --user coder coding-challenge-env
 
 # Or run in detached mode
-docker run -d -p 3000:3000 -p 5000:5000 -p 8000:8000 -p 8080:8080 -v $(pwd):/app --user developer --name dev-container multi-lang-dev
+docker run -d -p 3000:3000 -v $(pwd):/app --user coder --name coding-container coding-challenge-env
 ```
 
-## 🔧 Usage Examples
+## 🔧 Coding Challenge Examples
 
-### C/C++ Development
+### C/C++ Solutions
 ```bash
-# Compile C program
-gcc -o hello hello.c
-./hello
+# Compile and run C solution
+gcc -o solution solution.c
+./solution
 
-# Compile C++ program
-g++ -o hello hello.cpp
-./hello
+# Compile and run C++ solution
+g++ -o solution solution.cpp
+./solution
 ```
 
-### Python Development
+### Python Solutions
 ```bash
-# Run Python script
-python3 script.py
+# Run Python solution
+python3 solution.py
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install packages
-pip install package_name
+# With input from file
+python3 solution.py < input.txt
 ```
 
-### Java Development
+### Java Solutions
 ```bash
-# Compile Java program
-javac HelloWorld.java
-java HelloWorld
+# Compile and run Java solution
+javac Solution.java
+java Solution
 
-# Run with Maven (if pom.xml exists)
-mvn compile
-mvn exec:java
+# With input from file
+java Solution < input.txt
 ```
 
-### C# Development
+### C# Solutions
 ```bash
-# Create new console app
-dotnet new console -n MyApp
-cd MyApp
+# Compile and run C# solution
 dotnet run
 
 # Build and run
@@ -94,44 +87,31 @@ dotnet build
 dotnet run
 ```
 
-### Node.js Development
+### JavaScript Solutions
 ```bash
-# Install dependencies
-npm install
+# Run JavaScript solution
+node solution.js
 
-# Run application
-npm start
-# or
-node index.js
-
-# Run with TypeScript
-ts-node script.ts
+# With input from file
+node solution.js < input.txt
 ```
 
 ## 🌐 Ports
 
-- **3000**: Node.js/Express applications
-- **5000**: Python Flask applications
-- **8000**: Python Django applications
-- **8080**: Java Spring Boot applications
+- **3000**: Coding challenge server/API
 
 ## 📁 Directory Structure
 
 ```
 /app/
-├── c/          # C projects
-├── cpp/        # C++ projects
-├── python/     # Python projects
-├── java/       # Java projects
-├── csharp/     # C# projects
-└── javascript/ # Node.js projects
+└── solutions/    # User-submitted solutions
 ```
 
 ## 🔍 Verify Installation
 
 Once inside the container, run:
 ```bash
-# Check current user (should be 'developer')
+# Check current user (should be 'coder')
 whoami
 
 # Check all installed versions
@@ -141,10 +121,6 @@ python3 --version
 java -version
 dotnet --version
 node --version
-npm --version
-
-# Check sudo access (if needed)
-sudo whoami
 ```
 
 ## 🐛 Troubleshooting
@@ -156,7 +132,7 @@ If you encounter permission issues with mounted volumes:
 sudo chown -R $USER:$USER .
 
 # Or inside container with sudo
-sudo chown -R developer:developer /app
+sudo chown -R coder:coder /app
 ```
 
 ### Port Conflicts
@@ -179,6 +155,6 @@ To update to newer language versions:
 ## 📝 Notes
 
 - This is a development environment, not optimized for production
-- Self-signed certificates are included for HTTPS development
+- The application runs on HTTP for development
 - The container includes your project files via volume mounting
 - All languages are configured with their latest stable versions
